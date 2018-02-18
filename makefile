@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-o glinfo -lglew -framework OpenGL -framework GLUT
+CFLAGS=-Wno-deprecated -o glinfo -lglew -framework OpenGL -framework GLUT
 
 all: main.cpp
 	$(CC) $(CFLAGS) main.cpp
