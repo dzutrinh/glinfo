@@ -23,16 +23,12 @@ bool isExtensionSupported(const char *extList, const char *extension)
   for (start=extList;;)
   {
     where = strstr(start, extension);
-
     if (!where)
       break;
-
     terminator = where + strlen(extension);
-
     if ( where == start || *(where - 1) == ' ' )
       if ( *terminator == ' ' || *terminator == '\0' )
         return true;
-
     start = terminator;
   }
   return false;
