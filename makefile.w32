@@ -5,8 +5,8 @@ CC=g++
 CFLAGS=-s -O2 -o glinfo
 LFLAGS=-lopengl32 -lglew32 -lfreeglut
 
-all: main.cpp
-	$(CC) main.cpp $(CFLAGS) $(LFLAGS)
+all: main.c glinfo.c
+	$(CC) main.c glinfo.c $(CFLAGS) $(LFLAGS)
 
 clean:
 	del glinfo.exe
