@@ -1,10 +1,10 @@
 ## glinfo
 OpenGL Information
 
-##Requirements
+# Requirements
 GLEW
 FREEGLUT
 
-##Compile
+# Compile
 * macOS: 'make'
 * Windows/MinGW32: 'make -fmakefile.w32'
