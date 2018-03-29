@@ -1,3 +1,6 @@
+# For MinGW32 environment
+# syntax: 'make -fmakefile.w32'
+
 CC=g++
 CFLAGS=-s -O2 -o glinfo
 LFLAGS=-lopengl32 -lglew32 -lfreeglut
