@@ -1,0 +1,5 @@
+Vendor      : Intel
+Renderer    : Intel(R) HD Graphics 4600
+Version     : 4.3.0 - Build 20.19.15.4835
+GLSL        : 4.30 - Build 20.19.15.4835
+Shader Model: Shader Model 2.0

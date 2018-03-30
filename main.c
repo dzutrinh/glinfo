@@ -1,36 +1,37 @@
 #include <stdio.h>
-#include "glinfo.h"
+#include "ogli.h"
 
-GLboolean gliGetInfo(GL_INFO_CONTEXT * ctx)
+static char * g_SM[GL_SHADE_MODEL] = {"None", "Shader Model 2.0", "Shader Model 3.0", "Shader Model 4.0"};
+
+void error(const char * msg)
 {
-  return GL_FALSE; 
+    fprintf(stderr, "ERROR: %s\n", msg);
+    exit(0);
 }
 
 int main(int argc, char **argv)
 {
-    glutInit(&argc, argv);
-    glutCreateWindow("GLUT");
+    GL_INFO_CONTEXT * ctx = ogliInit(4, 6);
+    
+    if (!ctx)
+        error("Cannot init OGLI library.");
 
-    glewInit();
+    if (!ogliCreateContext(ctx))
+        error("Error creating OpenGL context.");
 
-    // returns pre 3.0 OpenGL information
-    printf("Vendor      : %s\n", glGetString(GL_VENDOR));
-    printf("Version     : %s\n", glGetString(GL_VERSION));
-    printf("Renderer    : %s\n", glGetString(GL_RENDERER));
-    printf("GLSL        : %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+    if (!ogliQuery(ctx))
+        error("Error fetching OpenGL information.");
 
-    const GLubyte * extensions_string=glGetString(GL_EXTENSIONS);
-    //printf("Extensions: %s\n", extensions_string);
-    printf("Shader Model: ");
-    if (gliSupported( (const char *) extensions_string, "GL_NV_gpu_program4"))
-        printf("4.0\n");
-    else
-    if (gliSupported( (const char *) extensions_string, "GL_NV_vertex_program3"))
-        printf("3.0\n");
-    else
-    if (gliSupported( (const char *) extensions_string, "GL_ARB_fragment_program"))
-        printf("2.0\n");
-    else
-        printf("None\n");
+    printf("Vendor      : %s\n", ctx->iblock.vendor);
+    printf("Renderer    : %s\n", ctx->iblock.renderer);
+    printf("Version     : %s\n", ctx->iblock.version);
+    printf("GLSL        : %s\n", ctx->iblock.glsl);
+    printf("Shader Model: %s\n", g_SM[ctx->iblock.sm]);
 
+    if (!ogliDestroyContext(ctx))
+        error("Error destroying rendering OpenGL context.");
+        
+    ogliShutdown(ctx);
+
+    return  0;
 }

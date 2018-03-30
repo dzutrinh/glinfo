@@ -1,0 +1,5 @@
+Vendor      : NVIDIA Corporation
+Renderer    : GeForce GT 420/PCIe/SSE2
+Version     : 4.6.0 NVIDIA 390.65
+GLSL        : 4.60 NVIDIA
+Shader Model: Shader Model 4.0
