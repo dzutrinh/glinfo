@@ -3,20 +3,20 @@
 
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#	include <windows.h>
+#endif
+#include <GL/gl.h>
 #include <GL/glu.h>
-/* #include <GL/glext.h> */     /* removed due to compatible problem */
 
-#ifdef  _WIN32
-# include <windows.h>
+#ifdef _MSC_VER						/* Microsoft Visual C++ compiler? */
+#	pragma comment (lib, "opengl32.lib")
+#	pragma comment (lib, "gdi32.lib")
+#	pragma warning(disable:4996)	/* enable _CRT_SECURE_NO_WARNINGS */
 #endif
 
-#ifdef _MSC_VER                 /* Microsoft Visual C++ compiler? */
-# pragma comment (lib, "opengl32.lib")
-# pragma comment (lib, "gdi32.lib")
-#endif
-
-#define MAX_INFO_LENGTH (128)   /* maximum length of an information string */
-#define MAX_EXT_LENGTH  (10240) /* maximum length of an extension string */
+#define MAX_INFO_LENGTH (128)		/* maximum length of an information string */
+#define MAX_EXT_LENGTH  (10240)		/* maximum length of an extension string */
 
 #ifndef GL_SHADING_LANGUAGE_VERSION
 # define GL_SHADING_LANGUAGE_VERSION 0x8B8C

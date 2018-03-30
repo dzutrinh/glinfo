@@ -1,17 +1,19 @@
 # Common macros
 CC=gcc
+BIN=bin/
+SRC=src/
 PROJECT=glinfo
-SOURCE=main.c ogli.c
+SOURCE=$(SRC)main.c $(SRC)ogli.c
 
 # Platform detection
 ifeq ($(OS),Windows_NT)							# WINDOWS
-	BINARY=$(PROJECT).exe
+	BINARY=$(BIN)$(PROJECT).exe
 	CFLAGS=-Wall -O2 -o $(BINARY)
 	LFLAGS=-s -lgdi32 -lopengl32 -lglu32 
 	RM=del /f
 else
 	UNAME_S := $(shell uname -s)
-	BINARY=$(PROJECT)
+	BINARY=$(BIN)$(PROJECT)
 	RM=rm -f
 
 	ifeq ($(UNAME_S),Linux)						# LINUX
@@ -30,4 +32,4 @@ all: $(SOURCE)
 	$(CC) $(CFLAGS) $(SOURCE) $(LFLAGS)
 
 clean:
-	$(RM) $(BINARY)
+	$(RM) $(BIN)$(BINARY)
