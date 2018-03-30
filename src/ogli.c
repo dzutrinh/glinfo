@@ -123,14 +123,24 @@ GLboolean ogliQuery(GL_INFO_CONTEXT * ctx)
     /* stores the extensions list for later use */ 
     strcpy((char *) ctx->iblock.extensions, (char *) glGetString(GL_EXTENSIONS));
 
-    if (ogliSupported(ctx, "GL_NV_gpu_program4"))
+    if (ogliSupported(ctx, "GL_NV_gpu_program4") ||
+        ogliSupported(ctx, "GL_EXT_gpu_shader4"))
         ctx->iblock.sm = SM_40;
     else
-    if (ogliSupported(ctx, "GL_NV_gpu_program3"))
+    if (ogliSupported(ctx, "GL_NV_gpu_program3") &&
+        ogliSupported(ctx, "GL_NV_fragment_program2"))
         ctx->iblock.sm = SM_30;
     else
-    if (ogliSupported(ctx, "GL_ARB_fragment_program"))
+    if (ogliSupported(ctx, "GL_ARB_fragment_program") || 
+        (ogliSupported(ctx, "GL_NV_fragment_program") && ogliSupported(ctx, "GL_NV_vertex_program2")) ||
+        ogliSupported(ctx, "GL_GL_ARB_draw_buffers"))
         ctx->iblock.sm = SM_20;
+    else
+    if ((ogliSupported(ctx, "GL_NV_texture_shaders") && 
+         ogliSupported(ctx, "GL_NV_register_combiners2")) ||
+        (ogliSupported(ctx, "GL_GL_ATI_fragment_shader ") && 
+         ogliSupported(ctx, "GL_GL_EXT_vertex_shader")))
+        ctx->iblock.sm = SM_10;
     else
         ctx->iblock.sm = SM_NONE;
 

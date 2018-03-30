@@ -23,7 +23,7 @@
 #endif
 
 /* Shader Model enums */
-typedef enum {SM_NONE, SM_20, SM_30, SM_40} GL_SHADER_MODEL;
+typedef enum {SM_NONE, SM_10, SM_20, SM_30, SM_40} GL_SHADER_MODEL;
 
 /* OpenGL version block */
 typedef struct gl_version_block

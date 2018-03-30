@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include "ogli.h"
 
-static char * g_SM[GL_SHADE_MODEL] = {  "None", 
-                                        "Shader Model 2.0+", 
-                                        "Shader Model 3.0+", 
-                                        "Shader Model 4.0+"};
+static char * g_SM[GL_SHADE_MODEL] = {  "None",
+                                        "SM 1.0",
+                                        "SM 2.0", 
+                                        "SM 3.0", 
+                                        "SM 4.0"};
 
 void error(const char * msg)
 {
