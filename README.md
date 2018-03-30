@@ -4,7 +4,7 @@ Tiny OpenGL Information utility. It displays OpenGL version, vendor, renderer, G
 ![linf](https://github.com/dzutrinh/glinfo/blob/master/screens/glinfo.png)
 
 ## Requirements
-* Windows: MinGW
+* Windows: MinGW/Visual Studio 2015
 * OSX: [WIP] 
 * Linux: [WIP]
 
