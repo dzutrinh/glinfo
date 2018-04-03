@@ -2,22 +2,71 @@
 #include <string.h>
 #include "ogli.h"
 
+typedef const GLubyte* (*PFNGLGETSTRINGIPROC) (GLenum name, GLuint index);
+PFNGLGETSTRINGIPROC glGetStringi;
+
+#ifdef  _WIN32
+#   define ogliGetProcAddress(name)  wglGetProcAddress(name)
+#elif   __APPLE__
+
+void * NSGetProcAddress (const GLubyte *name)
+{
+    static const struct mach_header* image = NULL;
+    NSSymbol symbol;
+    char* symbolName;
+
+    if (NULL == image)
+        image = NSAddImage("/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL", NSADDIMAGE_OPTION_RETURN_ON_ERROR);
+
+    symbolName = malloc(strlen((const char*)name) + 2);
+    strcpy(symbolName+1, (const char*)name);
+    symbolName[0] = '_';
+    symbol = NULL;
+    symbol = image ? NSLookupSymbolInImage(image, symbolName, NSLOOKUPSYMBOLINIMAGE_OPTION_BIND | NSLOOKUPSYMBOLINIMAGE_OPTION_RETURN_ON_ERROR) : NULL;
+    free(symbolName);
+    if(symbol)
+        return NSAddressOfSymbol(symbol);
+    return NULL;
+}
+
+#   define ogliGetProcAddress(name)  NSGetProcAddress(name)
+#else
+#   define ogliGetProcAddress(name)  glxGetProcAddress(name)
+#endif
+
 /* 
  * ogliInit(): initialize the OpenGL information query engine 
- * Input : major, minor: request minimum OpenGL version (major.minor)
+ * Input : profile to request
  * Output: a pointer to an allocated GL_INFO_CONTEXT structure, NULL if error occured.
  */
-GL_INFO_CONTEXT * ogliInit(int major, int minor)
+GL_INFO_CONTEXT * ogliInit(OGLI_PROFILE profile)
 {
     GL_INFO_CONTEXT * ctx = (GL_INFO_CONTEXT *) malloc(sizeof(GL_INFO_CONTEXT));
     if (!ctx)
         return NULL;
 
-    ctx->requestMajor = major;
-    ctx->requestMinor = minor;
+    ctx->profile = profile;
+
+#ifdef _WIN32
     ctx->wnd = NULL;
     ctx->dc = NULL;
     ctx->rc = NULL;
+#endif
+
+#ifdef __APPLE__
+    ctx->context = NULL;
+    ctx->contextOrig = NULL;
+#endif
+
+#ifdef __GLX__
+#endif
+
+    // get glGetStringi entry point if core profile is requested
+    if (profile == OGLI_CORE)
+    {
+        glGetStringi = (PFNGLGETSTRINGIPROC) ogliGetProcAddress((GLubyte *) "glGetStringi");
+    }
+
     ctx->active = GL_FALSE;
     memset(&ctx->iblock, 0, sizeof(GL_INFO_BLOCK));
     return ctx;
@@ -67,7 +116,7 @@ GLboolean ogliSupported(GL_INFO_CONTEXT * ctx, const char *extension)
 
     /*  It takes a bit of care to be fool-proof about parsing the
         OpenGL extensions string. Don't be fooled by sub-strings, etc. */
-    for (start=ctx->iblock.extensions;;)
+    for (start=ctx->iblock.glExtensions;;)
     {
         where = strstr(start, extension);
         if (!where)
@@ -89,23 +138,24 @@ GLboolean ogliSupported(GL_INFO_CONTEXT * ctx, const char *extension)
  */
 GLboolean ogliQuery(GL_INFO_CONTEXT * ctx)
 {
-    char *  glsl;
+    char *  glsl, * ext, * tmp;
+    GLint numExts, idx;
 
     if (!ctx)
         return GL_FALSE;
 
     if (!ctx->active)
         return GL_FALSE;
-
+    
     /* reads the basic OpenGL information and store them into our information block */
-    strcpy((char *) ctx->iblock.renderer,  (char *) glGetString(GL_RENDERER));
-    strcpy((char *) ctx->iblock.vendor,    (char *) glGetString(GL_VENDOR));
-    strcpy((char *) ctx->iblock.version,   (char *) glGetString(GL_VERSION));
+    strcpy((char *) ctx->iblock.glRenderer,  (char *) glGetString(GL_RENDERER));
+    strcpy((char *) ctx->iblock.glVendor,    (char *) glGetString(GL_VENDOR));
+    strcpy((char *) ctx->iblock.glVersion,   (char *) glGetString(GL_VERSION));
 
     /* extracts the OpenGL version number */
-    sscanf(ctx->iblock.version, "%d.%d.%d", &ctx->iblock.versionGL.major, 
-                                            &ctx->iblock.versionGL.minor,
-                                            &ctx->iblock.versionGL.release);
+    sscanf(ctx->iblock.glVersion, "%d.%d.%d", &ctx->iblock.versionGL.major, 
+                                              &ctx->iblock.versionGL.minor,
+                                              &ctx->iblock.versionGL.release);
 
     /* GLSL only present from OpenGL 2.0+ */
     if (ctx->iblock.versionGL.major >= 2)
@@ -113,40 +163,53 @@ GLboolean ogliQuery(GL_INFO_CONTEXT * ctx)
         /* double check :) */
         glsl = (char *) glGetString(GL_SHADING_LANGUAGE_VERSION); 
         if (!glsl)
-            strcpy((char *) ctx->iblock.glsl, "None");
+            strcpy((char *) ctx->iblock.glSL, "None");
         else
         {
-            strcpy((char *) ctx->iblock.glsl, glsl);
+            strcpy((char *) ctx->iblock.glSL, glsl);
             /* extracts the GLSL version number */
-            sscanf(ctx->iblock.glsl, "%d.%d", &ctx->iblock.versionGLSL.major, &ctx->iblock.versionGLSL.minor);
+            sscanf(ctx->iblock.glSL, "%d.%d", &ctx->iblock.versionGLSL.major, &ctx->iblock.versionGLSL.minor);
         }
     }
     else
-        strcpy((char *) ctx->iblock.glsl, "None");
+        strcpy((char *) ctx->iblock.glSL, "None");
 
     /* stores the extensions list for later use */ 
-    strcpy((char *) ctx->iblock.extensions, (char *) glGetString(GL_EXTENSIONS));
-
-    if (ogliSupported(ctx, "GL_NV_gpu_program4") ||
-        ogliSupported(ctx, "GL_EXT_gpu_shader4"))
-        ctx->iblock.sm = SM_40;
+    if (ctx->profile == OGLI_LEGACY)
+    {
+        /* copy the extensions string */
+        ext = (char *) glGetString(GL_EXTENSIONS);
+        if (ext)
+            strcpy((char *) ctx->iblock.glExtensions, ext);
+        else
+            strcpy((char *) ctx->iblock.glExtensions, "");
+        
+        /* simplest way to count the number of extensions */
+        for (tmp = ctx->iblock.glExtensions; *tmp; tmp++)
+        {
+            if (*tmp == ' ')
+                ctx->iblock.totalExtensions++;
+        }
+    }
     else
-    if (ogliSupported(ctx, "GL_NV_gpu_program3") &&
-        ogliSupported(ctx, "GL_NV_fragment_program2"))
-        ctx->iblock.sm = SM_30;
+    {
+        /* form an extenion string just like the legacy one */
+        glGetIntegerv(GL_NUM_EXTENSIONS, &numExts);
+        ctx->iblock.totalExtensions = numExts;
+        for (idx = 0; idx < numExts; idx++) 
+        {
+            strcat(ctx->iblock.glExtensions, (char *) glGetStringi(GL_EXTENSIONS, idx));
+            strcat(ctx->iblock.glExtensions, " ");
+        }
+    }
+    
+    /* OpenGL Utility Library */
+    strcpy((char *) ctx->iblock.gluVersion,   (char *) gluGetString(GLU_VERSION));
+    ext = (char *) gluGetString(GLU_EXTENSIONS);
+    if (ext)
+        strcpy((char *) ctx->iblock.gluExtensions, ext);
     else
-    if (ogliSupported(ctx, "GL_ARB_fragment_program") || 
-        (ogliSupported(ctx, "GL_NV_fragment_program") && ogliSupported(ctx, "GL_NV_vertex_program2")) ||
-        ogliSupported(ctx, "GL_GL_ARB_draw_buffers"))
-        ctx->iblock.sm = SM_20;
-    else
-    if ((ogliSupported(ctx, "GL_NV_texture_shaders") && 
-         ogliSupported(ctx, "GL_NV_register_combiners2")) ||
-        (ogliSupported(ctx, "GL_GL_ATI_fragment_shader ") && 
-         ogliSupported(ctx, "GL_GL_EXT_vertex_shader")))
-        ctx->iblock.sm = SM_10;
-    else
-        ctx->iblock.sm = SM_NONE;
+        strcpy((char *) ctx->iblock.gluExtensions, "");
 
     return GL_TRUE; 
 }
@@ -212,7 +275,7 @@ GLboolean ogliCreateContext(GL_INFO_CONTEXT * ctx)
         return GL_FALSE;
 
     ctx->active = GL_TRUE;
-        return GL_TRUE;
+    return GL_TRUE;
 }
 
 /* 
@@ -246,4 +309,70 @@ GLboolean ogliDestroyContext(GL_INFO_CONTEXT * ctx)
     ctx->active = GL_FALSE;
     return GL_TRUE;
 }
+#endif
+
+/*----------------------------------------------------------------------------------------------------------*/
+/*                                      OSX PLATFORM SPECIFIC CODE                                          */
+/*----------------------------------------------------------------------------------------------------------*/
+#ifdef __APPLE__
+
+/* 
+ * ogliCreateContext(): create an OpenGL rendering context using WGL API on Win32
+ * Input : pointer to the allocated GL_INFO_CONTEXT structure
+ * Output: TRUE if suceed.
+ */
+GLboolean ogliCreateContext(GL_INFO_CONTEXT * ctx)
+{
+    CGLPixelFormatAttribute attribLegacy[] = {kCGLPFAOpenGLProfile, kCGLOGLPVersion_Legacy,   0};
+    CGLPixelFormatAttribute attribCore[] =   {kCGLPFAOpenGLProfile, kCGLOGLPVersion_3_2_Core, 0};
+    CGLError error;
+    CGLPixelFormatObj pf;
+    GLint npix;
+
+    if (!ctx) 
+        return GL_FALSE;
+    
+    if (ctx->profile == OGLI_CORE)
+    {
+        /* attempt to select core profile */
+        error = CGLChoosePixelFormat(attribCore, &pf, &npix);
+        if (error)
+        {
+            /* if core profile request failed, going back to legacy profile */
+            error = CGLChoosePixelFormat(attribLegacy, &pf, &npix);
+            if (error)
+                return GL_FALSE;        /* still no? */
+        }
+    }
+    else
+        CGLChoosePixelFormat(attribLegacy, &pf, &npix);
+        
+    CGLCreateContext(pf, NULL, &ctx->context);
+    ctx->contextOrig = CGLGetCurrentContext();
+    CGLSetCurrentContext(ctx->context);        
+    CGLReleasePixelFormat(pf);
+
+    ctx->active = GL_TRUE;
+        
+    return GL_TRUE;
+}
+
+/* 
+ * ogliDestroyContext(): destroy the created OpenGL rendering context
+ * Input : pointer to the allocated GL_INFO_CONTEXT structure
+ * Output: TRUE if suceed.
+ */
+GLboolean ogliDestroyContext(GL_INFO_CONTEXT * ctx)
+{
+    if (!ctx) 
+        return GL_FALSE;
+    
+    CGLSetCurrentContext(ctx->contextOrig);
+    if (ctx->context) 
+        CGLReleaseContext(ctx->context);
+
+    ctx->active = GL_FALSE;
+    return GL_TRUE;
+}
+
 #endif

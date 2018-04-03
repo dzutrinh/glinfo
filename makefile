@@ -21,8 +21,8 @@ else
 		LFLAGS=-lGL -lX11
 	else
 	ifeq ($(UNAME_S),Darwin)					# OSX
-		CFLAGS=-Wno-deprecated -o $(BINARY)
-		LFLAGS=-framework OpenGL 
+		CFLAGS=-Wno-deprecated -Wno-enum-conversion -o $(BINARY)
+		LFLAGS=-framework OpenGL
 	endif
 	endif	
 endif

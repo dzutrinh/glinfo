@@ -14,7 +14,9 @@ extern "C" {
 #   include <GL/glu.h>
 #else
 #   ifdef   __APPLE__
-#       include <GL/OpenGL.h>
+#       include <OpenGL/OpenGL.h>
+#       include <OpenGL/glu.h>
+#       include <mach-o/dyld.h>
 #   else
 #       include <unistd.h>
 #       include <X11/Xlib.h>
@@ -34,11 +36,14 @@ extern "C" {
 #define MAX_EXT_LENGTH  (10240)		/* maximum length of an extension string */
 
 #ifndef GL_SHADING_LANGUAGE_VERSION
-#   define GL_SHADING_LANGUAGE_VERSION 0x8B8C
+#   define GL_SHADING_LANGUAGE_VERSION  0x8B8C
 #endif
 
-/* Shader Model enums */
-typedef enum {SM_NONE, SM_10, SM_20, SM_30, SM_40} GL_SHADER_MODEL;
+#ifndef GL_NUM_EXTENSIONS
+#   define GL_NUM_EXTENSIONS            0x821D
+#endif
+
+typedef enum {OGLI_LEGACY, OGLI_CORE} OGLI_PROFILE;
 
 /* OpenGL version block */
 typedef struct gl_version_block
@@ -58,21 +63,22 @@ typedef struct glsl_version_block
 /* OpenGL information block */
 typedef struct gl_info_block
 {
-    char  vendor[MAX_INFO_LENGTH];
-    char  renderer[MAX_INFO_LENGTH];
-    char  version[MAX_INFO_LENGTH];
-    char  glsl[MAX_INFO_LENGTH];
-    char  extensions[MAX_EXT_LENGTH];
-    GL_SHADER_MODEL sm;
-    GL_VERSION_BLOCK versionGL;
-    GLSL_VERSION_BLOCK versionGLSL;
+    char    glVendor[MAX_INFO_LENGTH];
+    char    glRenderer[MAX_INFO_LENGTH];
+    char    glVersion[MAX_INFO_LENGTH];
+    char    glSL[MAX_INFO_LENGTH];
+    char    glExtensions[MAX_EXT_LENGTH];
+    char    gluVersion[MAX_INFO_LENGTH];
+    char    gluExtensions[MAX_EXT_LENGTH];
+    GLuint  totalExtensions;
+    GL_VERSION_BLOCK    versionGL;
+    GLSL_VERSION_BLOCK  versionGLSL;
 } GL_INFO_BLOCK;
 
 /* Context for OpenGL information query */
 typedef struct gl_info_context
 {
-    GLint requestMajor;   /* request minimum OpenGL version number */
-    GLint requestMinor;
+    OGLI_PROFILE profile; /* query legacy or core profile */
     GL_INFO_BLOCK iblock; /* OpenGL information block */
     GLboolean active;     /* ready for information query flag */
 
@@ -81,7 +87,12 @@ typedef struct gl_info_context
     HWND wnd;     /* window's handle */
     HDC dc;       /* device's context */
     HGLRC rc;     /* rendering context */
+#elif __APPLE__
+    CGLContextObj context, contextOrig;
+#else
+    /* POSIX */
 #endif
+
 } GL_INFO_CONTEXT;
 
 /*
@@ -93,7 +104,7 @@ typedef struct gl_info_context
  *                                 ogliShutdown() <- ogliDestroyContext() <-+
  */
 
-GL_INFO_CONTEXT * ogliInit(int major, int minor);
+GL_INFO_CONTEXT * ogliInit(OGLI_PROFILE profile);
 GLboolean ogliShutdown(GL_INFO_CONTEXT * ctx);
 GLboolean ogliCreateContext(GL_INFO_CONTEXT * ctx);
 GLboolean ogliDestroyContext(GL_INFO_CONTEXT * ctx);

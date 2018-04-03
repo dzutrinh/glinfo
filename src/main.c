@@ -1,13 +1,7 @@
 #include <stdio.h>
 #include "ogli.h"
 
-static char * g_SM[GL_SHADE_MODEL] = {  "None",
-                                        "SM 1.0",
-                                        "SM 2.0", 
-                                        "SM 3.0", 
-                                        "SM 4.0"};
-
-void error(const char * msg)
+void die(const char * msg)
 {
     fprintf(stderr, "ERROR: %s\n", msg);
     exit(0);
@@ -15,26 +9,33 @@ void error(const char * msg)
 
 int main(int argc, char **argv)
 {
-    GL_INFO_CONTEXT * ctx = ogliInit(4, 6);
+    GL_INFO_CONTEXT * ctx = ogliInit(OGLI_LEGACY);
     
     if (!ctx)
-        error("Cannot init OGLI library.");
+        die("Cannot init OGLI library.");
 
     if (!ogliCreateContext(ctx))
-        error("Error creating OpenGL context.");
+        die("Error creating OpenGL context.");
 
     if (!ogliQuery(ctx))
-        error("Error fetching OpenGL information.");
+        die("Error fetching OpenGL information.");
 
-    printf("Vendor      : %s\n", ctx->iblock.vendor);
-    printf("Renderer    : %s\n", ctx->iblock.renderer);
-    printf("Version     : %s\n", ctx->iblock.version);
-    printf("GLSL        : %s\n", ctx->iblock.glsl);
-    printf("Shader Model: %s\n", g_SM[ctx->iblock.sm]);
+    printf("--- OpenGL\n");
+    printf("Vendor      : %s\n", ctx->iblock.glVendor);
+    printf("Renderer    : %s\n", ctx->iblock.glRenderer);
+    printf("Version     : %s\n", ctx->iblock.glVersion);
+    printf("GLSL        : %s\n", ctx->iblock.glSL);
+    printf("Extenions   : %u total\n", ctx->iblock.totalExtensions);
+    
+    printf("--- OpenGLU\n");
+    printf("Version     : %s\n", ctx->iblock.gluVersion);
+    printf("Extensions  : %s\n", ctx->iblock.gluExtensions);
+
+    //printf("Extensions  : %s\n", ctx->iblock.extensions);
 
     if (!ogliDestroyContext(ctx))
-        error("Error destroying rendering OpenGL context.");
-        
+        die("Error destroying rendering OpenGL context.");
+    
     ogliShutdown(ctx);
 
     return  0;
