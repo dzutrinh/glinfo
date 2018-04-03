@@ -6,9 +6,8 @@ typedef const GLubyte* (*PFNGLGETSTRINGIPROC) (GLenum name, GLuint index);
 PFNGLGETSTRINGIPROC glGetStringi;
 
 #ifdef  _WIN32
-#   define ogliGetProcAddress(name)  wglGetProcAddress(name)
+#   define ogliGetProcAddress(name)  wglGetProcAddress((char *) name)
 #elif   __APPLE__
-
 void * NSGetProcAddress (const GLubyte *name)
 {
     static const struct mach_header* image = NULL;
@@ -31,7 +30,7 @@ void * NSGetProcAddress (const GLubyte *name)
 
 #   define ogliGetProcAddress(name)  NSGetProcAddress(name)
 #else
-#   define ogliGetProcAddress(name)  glxGetProcAddress(name)
+#   define ogliGetProcAddress(name)  glxGetProcAddress((char *) name)
 #endif
 
 /* 
@@ -254,6 +253,7 @@ GLboolean ogliCreateContext(GL_INFO_CONTEXT * ctx)
     if (!ctx->dc) 
         return GL_FALSE;
 
+    /* legacy profile */
     memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR)); /* preparing to obtain a pixel format */
     pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
     pfd.nVersion = 1;
