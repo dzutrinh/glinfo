@@ -3,8 +3,13 @@
 #include "ogli.h"
 
 typedef const GLubyte* (*PFNGLGETSTRINGIPROC) (GLenum name, GLuint index);
-PFNGLGETSTRINGIPROC glGetStringi;
+PFNGLGETSTRINGIPROC glGetStringi = NULL;
 
+/* 
+ * ogliGetProcAddress(): cross platform function pointer fetcher
+ * Input: name of the function to fetch
+ * Output: entry-point to the function
+ */
 #ifdef  _WIN32
 #   define ogliGetProcAddress(name)  wglGetProcAddress((char *) name)
 #elif   __APPLE__
@@ -64,6 +69,12 @@ GL_INFO_CONTEXT * ogliInit(OGLI_PROFILE profile)
     if (profile == OGLI_CORE)
     {
         glGetStringi = (PFNGLGETSTRINGIPROC) ogliGetProcAddress((GLubyte *) "glGetStringi");
+        /* error happened */
+        if (glGetStringi == NULL)
+        {
+            free(ctx);
+            return NULL;
+        }
     }
 
     ctx->active = GL_FALSE;
