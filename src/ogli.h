@@ -1,18 +1,33 @@
 #ifndef __GLINFO_H__
 #define __GLINFO_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
+
 #include <stdlib.h>
 #include <string.h>
+
 #ifdef _WIN32
 #	include <windows.h>
+#   include <GL/gl.h>
+#   include <GL/glu.h>
+#else
+#   ifdef   __APPLE__
+#       include <GL/OpenGL.h>
+#   else
+#       include <unistd.h>
+#       include <X11/Xlib.h>
+#       include <X11/Xutil.h>
+#       include <GL/gl.h>
+#       include <GL/glx.h>
+#   endif
 #endif
-#include <GL/gl.h>
-#include <GL/glu.h>
 
-#ifdef _MSC_VER						/* Microsoft Visual C++ compiler? */
+#ifdef _MSC_VER						/* Microsoft Visual C++ compiler */
 #	pragma comment (lib, "opengl32.lib")
 #	pragma comment (lib, "gdi32.lib")
-#	pragma warning(disable:4996)	/* enable _CRT_SECURE_NO_WARNINGS */
+#	pragma warning (disable:4996)	/* enable preprocessor _CRT_SECURE_NO_WARNINGS */
 #endif
 
 #define MAX_INFO_LENGTH (128)		/* maximum length of an information string */
@@ -33,6 +48,7 @@ typedef struct gl_version_block
     GLint release;
 } GL_VERSION_BLOCK;
 
+/* GLSL version block */
 typedef struct glsl_version_block
 {
     GLint major;
@@ -69,13 +85,13 @@ typedef struct gl_info_context
 } GL_INFO_CONTEXT;
 
 /*
-  OpenGL information query pipeline:
-    ogliInit() -> ogliCreateContext() -> ogliQuery() -+-> ogliSupported() -+ 
-                                                      |                    |
-                                                      +--------------------+
-                                                                           |
-                                  ogliShutdown() <- ogliDestroyContext() <-+
-*/
+ * OpenGL information query pipeline:
+ *   ogliInit() -> ogliCreateContext() -> ogliQuery() -+-> ogliSupported() -+ 
+ *                                                     |                    |
+ *                                                     +--------------------+
+ *                                                                          |
+ *                                 ogliShutdown() <- ogliDestroyContext() <-+
+ */
 
 GL_INFO_CONTEXT * ogliInit(int major, int minor);
 GLboolean ogliShutdown(GL_INFO_CONTEXT * ctx);
@@ -83,5 +99,9 @@ GLboolean ogliCreateContext(GL_INFO_CONTEXT * ctx);
 GLboolean ogliDestroyContext(GL_INFO_CONTEXT * ctx);
 GLboolean ogliSupported(GL_INFO_CONTEXT * ctx, const char * extension);
 GLboolean ogliQuery(GL_INFO_CONTEXT * ctx);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

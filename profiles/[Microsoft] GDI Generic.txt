@@ -1,0 +1,5 @@
+Vendor      : Microsoft Corporation
+Renderer    : GDI Generic
+Version     : 1.1.0
+GLSL        : None
+Shader Model: None

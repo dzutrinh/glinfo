@@ -1,0 +1,2 @@
+https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL)
+https://stackoverflow.com/questions/12482166/creating-opengl-context-without-window

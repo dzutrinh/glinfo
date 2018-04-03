@@ -2,10 +2,11 @@
 #include <string.h>
 #include "ogli.h"
 
-/* ogliInit(): initialize the OpenGL information query engine 
+/* 
+ * ogliInit(): initialize the OpenGL information query engine 
  * Input : major, minor: request minimum OpenGL version (major.minor)
  * Output: a pointer to an allocated GL_INFO_CONTEXT structure, NULL if error occured.
-*/
+ */
 GL_INFO_CONTEXT * ogliInit(int major, int minor)
 {
     GL_INFO_CONTEXT * ctx = (GL_INFO_CONTEXT *) malloc(sizeof(GL_INFO_CONTEXT));
@@ -22,10 +23,11 @@ GL_INFO_CONTEXT * ogliInit(int major, int minor)
     return ctx;
 }
 
-/* ogliShutdown(): shutdown the OpenGL information query engine 
+/* 
+ * ogliShutdown(): shutdown the OpenGL information query engine 
  * Input : pointer to the allocated GL_INFO_CONTEXT structure
  * Output: TRUE if suceed.
-*/
+ */
 GLboolean ogliShutdown(GL_INFO_CONTEXT * ctx)
 {
     if (!ctx)
@@ -41,11 +43,12 @@ GLboolean ogliShutdown(GL_INFO_CONTEXT * ctx)
     return GL_TRUE;
 }
 
-/* ogliSupported(): check if an extension is supported 
+/* 
+ * ogliSupported(): check if an extension is supported 
  * Input : ctx: GL_INFO_CONTEXT structure.
  *         extension: extension to check. 
  * Output: TRUE if supported.
-*/
+ */
 GLboolean ogliSupported(GL_INFO_CONTEXT * ctx, const char *extension)
 {
     const char *start;
@@ -79,10 +82,11 @@ GLboolean ogliSupported(GL_INFO_CONTEXT * ctx, const char *extension)
     return GL_FALSE;
 }
 
-/* ogliQuery(): query information from the OpenGL renderer
+/* 
+ * ogliQuery(): query information from the OpenGL renderer
  * Input : pointer to the allocated GL_INFO_CONTEXT structure
  * Output: TRUE if suceed.
-*/
+ */
 GLboolean ogliQuery(GL_INFO_CONTEXT * ctx)
 {
     char *  glsl;
@@ -155,10 +159,11 @@ GLboolean ogliQuery(GL_INFO_CONTEXT * ctx)
 /* class name and window's title */
 static char * g_WNDCLASS = "LIBOGLI";
 
-/* ogliCreateContext(): create an OpenGL rendering context using WGL API on Win32
+/* 
+ * ogliCreateContext(): create an OpenGL rendering context using WGL API on Win32
  * Input : pointer to the allocated GL_INFO_CONTEXT structure
  * Output: TRUE if suceed.
-*/
+ */
 GLboolean ogliCreateContext(GL_INFO_CONTEXT * ctx)
 {
     GLint pf;
@@ -210,10 +215,11 @@ GLboolean ogliCreateContext(GL_INFO_CONTEXT * ctx)
         return GL_TRUE;
 }
 
-/* ogliDestroyContext(): destroy the created OpenGL rendering context
+/* 
+ * ogliDestroyContext(): destroy the created OpenGL rendering context
  * Input : pointer to the allocated GL_INFO_CONTEXT structure
  * Output: TRUE if suceed.
-*/
+ */
 GLboolean ogliDestroyContext(GL_INFO_CONTEXT * ctx)
 {
     if (!ctx)   /* validate input parameter */

@@ -18,7 +18,7 @@ else
 
 	ifeq ($(UNAME_S),Linux)						# LINUX
 		CFLAGS=-O2 -o $(BINARY)
-		LFLAGS=-lGL
+		LFLAGS=-lGL -lX11
 	else
 	ifeq ($(UNAME_S),Darwin)					# OSX
 		CFLAGS=-Wno-deprecated -o $(BINARY)
