@@ -11,6 +11,9 @@
 extern "C" {
 #endif 
 
+/* for debugging purpose, enable the line below */
+/* #define _OGLI_DEBUG_    1 */
+
 #include <stdlib.h>
 #include <string.h>
 

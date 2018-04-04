@@ -12,6 +12,10 @@
 /*                              PORTIONS ARE FROM GLEXT.H AND WGLEXT.H                                      */
 /*----------------------------------------------------------------------------------------------------------*/
 
+#ifndef APIENTRY
+#   define APIENTRY
+#endif
+
 #define GL_SHADING_LANGUAGE_VERSION  0x8B8C
 #define GL_NUM_EXTENSIONS            0x821D
 
@@ -22,8 +26,6 @@ PFNGLGETSTRINGIPROC glGetStringi = NULL;
     typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int *attribList); 
     PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 #endif
-
-#define _OGLI_DEBUG_    1
 
 void ogliLog(const char * msg)
 {
@@ -44,6 +46,9 @@ void ogliLog(const char * msg)
 #ifdef  _WIN32
 #   define ogliGetProcAddress(name)  wglGetProcAddress((char *) name)
 #elif   __APPLE__
+
+#define OPENGL_FRAMEWORK_OSX    ("/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL")
+
 void * NSGetProcAddress (const GLubyte *name)
 {
     static const struct mach_header* image = NULL;
@@ -51,7 +56,7 @@ void * NSGetProcAddress (const GLubyte *name)
     char* symbolName;
 
     if (NULL == image)
-        image = NSAddImage("/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL", NSADDIMAGE_OPTION_RETURN_ON_ERROR);
+        image = NSAddImage(OPENGL_FRAMEWORK_OSX, NSADDIMAGE_OPTION_RETURN_ON_ERROR);
 
     symbolName = malloc(strlen((const char*)name) + 2);
     strcpy(symbolName+1, (const char*)name);
@@ -449,9 +454,9 @@ GLboolean ogliCreateContext(GL_INFO_CONTEXT * ctx)
     CGLReleasePixelFormat(pf);
 
     /* get glGetStringi entry point if core profile is requested */
-    if (profile == OGLI_CORE)
+    if (ctx->profile == OGLI_CORE)
     {
-        if (!ogliInitCore()))
+        if (!ogliInitCore())
             return GL_FALSE;
     }
 

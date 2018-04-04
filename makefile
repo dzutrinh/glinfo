@@ -32,4 +32,4 @@ all: $(SOURCE)
 	$(CC) $(CFLAGS) $(SOURCE) $(LFLAGS)
 
 clean:
-	$(RM) $(BIN)$(BINARY)
+	$(RM) $(BINARY)
