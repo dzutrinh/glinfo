@@ -22,7 +22,7 @@ void die(const char * msg)
 int main(int argc, char **argv)
 {
     OGLI_PROFILE        profile = OGLI_LEGACY;
-    GL_INFO_CONTEXT     * ctx = NULL;
+    OGLI_CONTEXT        * ctx = NULL;
     GLint               idx;
     GLboolean           extShow = GL_FALSE, infShow = GL_TRUE, valid = GL_FALSE;
 

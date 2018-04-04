@@ -42,10 +42,10 @@ extern "C" {
 #	pragma warning (disable:4996)	/* enable preprocessor _CRT_SECURE_NO_WARNINGS */
 #endif
 
-#define MAX_INFO_LENGTH (128)		/* maximum length of an information string */
-#define MAX_EXT_LENGTH  (10240)		/* maximum length of an extension string */
+#define OGLI_MAX_INFO_LENGTH (128)		/* maximum length of an information string */
+#define OGLI_MAX_EXT_LENGTH  (10240)	/* maximum length of an extension string */
 
-#define OGLI_MAJOR_VERSION  1       /* library version number */
+#define OGLI_MAJOR_VERSION  1           /* library version number */
 #define OGLI_MINOR_VERSION  0
 
 /* library platform */
@@ -70,28 +70,28 @@ typedef struct gl_version_block
     GLint major;
     GLint minor;
     GLint release;
-} GL_VERSION_BLOCK;
+} OGLI_GL_VERSION_BLOCK;
 
 /* GLSL version block */
 typedef struct glsl_version_block
 {
     GLint major;
     GLint minor;
-} GLSL_VERSION_BLOCK;
+} OGLI_GLSL_VERSION_BLOCK;
 
 /* OpenGL information block */
 typedef struct gl_info_block
 {
-    char    glVendor[MAX_INFO_LENGTH];
-    char    glRenderer[MAX_INFO_LENGTH];
-    char    glVersion[MAX_INFO_LENGTH];
-    char    glSL[MAX_INFO_LENGTH];
-    char    glExtensions[MAX_EXT_LENGTH];
-    char    gluVersion[MAX_INFO_LENGTH];
-    char    gluExtensions[MAX_EXT_LENGTH];
+    char    glVendor[OGLI_MAX_INFO_LENGTH];
+    char    glRenderer[OGLI_MAX_INFO_LENGTH];
+    char    glVersion[OGLI_MAX_INFO_LENGTH];
+    char    glSL[OGLI_MAX_INFO_LENGTH];
+    char    glExtensions[OGLI_MAX_EXT_LENGTH];
+    char    gluVersion[OGLI_MAX_INFO_LENGTH];
+    char    gluExtensions[OGLI_MAX_EXT_LENGTH];
     GLuint  totalExtensions;
-    GL_VERSION_BLOCK    versionGL;
-    GLSL_VERSION_BLOCK  versionGLSL;
+    OGLI_GL_VERSION_BLOCK    versionGL;
+    OGLI_GLSL_VERSION_BLOCK  versionGLSL;
 } GL_INFO_BLOCK;
 
 /* Context for OpenGL information query */
@@ -112,7 +112,7 @@ typedef struct gl_info_context
 #else
     /* POSIX */
 #endif
-} GL_INFO_CONTEXT;
+} OGLI_CONTEXT;
 
 /*
  * OpenGL information query pipeline:
@@ -123,12 +123,12 @@ typedef struct gl_info_context
  *                                 ogliShutdown() <- ogliDestroyContext() <-+
  */
 
-GL_INFO_CONTEXT * ogliInit(OGLI_PROFILE profile);
-GLboolean   ogliShutdown(GL_INFO_CONTEXT * ctx);
-GLboolean   ogliCreateContext(GL_INFO_CONTEXT * ctx);
-GLboolean   ogliDestroyContext(GL_INFO_CONTEXT * ctx);
-GLboolean   ogliSupported(GL_INFO_CONTEXT * ctx, const char * extension);
-GLboolean   ogliQuery(GL_INFO_CONTEXT * ctx);
+OGLI_CONTEXT * ogliInit(OGLI_PROFILE profile);
+GLboolean   ogliShutdown(OGLI_CONTEXT * ctx);
+GLboolean   ogliCreateContext(OGLI_CONTEXT * ctx);
+GLboolean   ogliDestroyContext(OGLI_CONTEXT * ctx);
+GLboolean   ogliSupported(OGLI_CONTEXT * ctx, const char * extension);
+GLboolean   ogliQuery(OGLI_CONTEXT * ctx);
 GLuint      ogliGetVersion();
 
 #ifdef __cplusplus
