@@ -6,8 +6,9 @@ const char * HELP_MSG = "OpenGL information query utility - v1.0 (%s)\n"
                         "Usage: glinfo [-?|c|e|i]\n"
                         "Where as: -?  give this help message\n"
                         "          -c  use core profile to query, by default legacy profile is used\n"
-                        "          -e  list all extensions\n"
-                        "          -i  query library version\n";
+                        "          -e  list all extensions only\n"
+                        "          -i  display OpenGL information, use combine with -e\n"
+                        "          -l  query library version\n";
 
 void die(const char * msg)
 {
@@ -20,7 +21,7 @@ int main(int argc, char **argv)
     OGLI_PROFILE        profile = OGLI_LEGACY;
     GL_INFO_CONTEXT     * ctx = NULL;
     GLint               idx;
-    GLboolean           extShow = GL_FALSE;
+    GLboolean           extShow = GL_FALSE, infShow = GL_TRUE;
 
     if (argc > 1)
     {
@@ -32,7 +33,7 @@ int main(int argc, char **argv)
                 return 0;
             }
 
-            if (strcmp(argv[idx], "-i") == 0)
+            if (strcmp(argv[idx], "-l") == 0)
             {
                 printf("Information query library v%d.%d (%s)\n", OGLI_MAJOR_VERSION,
                                                                   OGLI_MINOR_VERSION, 
@@ -44,7 +45,14 @@ int main(int argc, char **argv)
                 profile = OGLI_CORE;
 
             if (strcmp(argv[idx], "-e") == 0)
+            {
                 extShow = GL_TRUE;
+                infShow = GL_FALSE;
+            }
+
+            if (strcmp(argv[idx], "-i") == 0)
+                infShow = GL_TRUE;
+            
         }
     }
 
@@ -59,17 +67,23 @@ int main(int argc, char **argv)
         die("Error fetching OpenGL information.");
 
     printf("--- OpenGL\n");
-    printf("Vendor      : %s\n", ctx->iblock.glVendor);
-    printf("Renderer    : %s\n", ctx->iblock.glRenderer);
-    printf("Version     : %s\n", ctx->iblock.glVersion);
-    printf("GLSL        : %s\n", ctx->iblock.glSL);
-    printf("Extensions  : %u total\n", ctx->iblock.totalExtensions);
+    if (infShow)
+    {
+        printf("Vendor      : %s\n", ctx->iblock.glVendor);
+        printf("Renderer    : %s\n", ctx->iblock.glRenderer);
+        printf("Version     : %s\n", ctx->iblock.glVersion);
+        printf("GLSL        : %s\n", ctx->iblock.glSL);
+        printf("Extensions  : %u total\n", ctx->iblock.totalExtensions);
+    }
 
     if (extShow)
         printf("%s\n", ctx->iblock.glExtensions);
     
     printf("\n--- OpenGLU\n");
-    printf("Version     : %s\n", ctx->iblock.gluVersion);
+    if (infShow)
+    {
+        printf("Version     : %s\n", ctx->iblock.gluVersion);
+    }
 
     if (extShow)
         printf("%s\n", ctx->iblock.gluExtensions);
