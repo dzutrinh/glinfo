@@ -9,7 +9,7 @@ SOURCE=$(SRC)main.c $(SRC)ogli.c
 ifeq ($(OS),Windows_NT)							# WINDOWS
 	BINARY=$(BIN)$(PROJECT).exe
 	CFLAGS=-Wall -O2 -o $(BINARY)
-	LFLAGS=-s -lgdi32 -lopengl32 -lglu32 
+	LFLAGS=-s -lgdi32 -lopengl32 -lglu32
 	RM=del /f
 else
 	UNAME_S := $(shell uname -s)
@@ -18,7 +18,7 @@ else
 
 	ifeq ($(UNAME_S),Linux)						# LINUX
 		CFLAGS=-O2 -o $(BINARY)
-		LFLAGS=-lGL -lX11
+		LFLAGS=-lGL -lGLU -lX11
 	else
 	ifeq ($(UNAME_S),Darwin)					# OSX
 		CFLAGS=-Wno-deprecated -Wno-enum-conversion -o $(BINARY)

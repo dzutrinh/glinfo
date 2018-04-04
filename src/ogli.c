@@ -1,9 +1,40 @@
+/*
+ *  OGLI.CPP
+ *  Implementation for OpenGL information query library. Coded by Trinh D.D. Nguyen
+ *  This library is a cross platform library, it runs on Windows (VC/MinGW), OSX and Linux.
+ *  OGLI is released under MIT licensed, please see LICENSE for more information.
+ */
 #include <stdio.h>
 #include <string.h>
 #include "ogli.h"
 
-typedef const GLubyte* (*PFNGLGETSTRINGIPROC) (GLenum name, GLuint index);
+/*----------------------------------------------------------------------------------------------------------*/
+/*                              PORTIONS ARE FROM GLEXT.H AND WGLEXT.H                                      */
+/*----------------------------------------------------------------------------------------------------------*/
+
+#define GL_SHADING_LANGUAGE_VERSION  0x8B8C
+#define GL_NUM_EXTENSIONS            0x821D
+
+typedef const GLubyte *(APIENTRY *  PFNGLGETSTRINGIPROC) (GLenum name, GLuint index); 
 PFNGLGETSTRINGIPROC glGetStringi = NULL;
+
+#ifdef _WIN32
+    typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int *attribList); 
+    PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
+#endif
+
+#define _OGLI_DEBUG_    1
+
+void ogliLog(const char * msg)
+{
+#ifdef _OGLI_DEBUG_
+    fprintf(stderr, "%s\n", msg);
+#endif
+}
+
+/*----------------------------------------------------------------------------------------------------------*/
+/*                                        PLATFORM INDEPENDENT API                                          */
+/*----------------------------------------------------------------------------------------------------------*/
 
 /* 
  * ogliGetProcAddress(): cross platform function pointer fetcher
@@ -39,6 +70,37 @@ void * NSGetProcAddress (const GLubyte *name)
 #endif
 
 /* 
+ * ogliInitCore(): initialize the OpenGL for core profile 
+ * Input : none
+ * Output: GL_TRUE if success.
+ */
+static GLboolean ogliInitCore()
+{
+    glGetStringi = (PFNGLGETSTRINGIPROC) ogliGetProcAddress((GLubyte *) "glGetStringi");
+    if (!glGetStringi)
+    {
+        ogliLog("Error getting glGetStringi()");
+        return GL_FALSE;
+    }
+
+#ifdef  _WIN32
+    wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC) ogliGetProcAddress((GLubyte *) "wglCreateContextAttribsARB");
+    if (!wglCreateContextAttribsARB)
+    {
+        ogliLog("Error getting wglCreateContextAttribsARB()");
+        return GL_FALSE;
+    }
+#endif
+
+    return GL_TRUE;
+}
+
+GLuint ogliGetVersion()
+{
+    return  (OGLI_MAJOR_VERSION << 8 | OGLI_MINOR_VERSION);
+}
+
+/* 
  * ogliInit(): initialize the OpenGL information query engine 
  * Input : profile to request
  * Output: a pointer to an allocated GL_INFO_CONTEXT structure, NULL if error occured.
@@ -47,7 +109,10 @@ GL_INFO_CONTEXT * ogliInit(OGLI_PROFILE profile)
 {
     GL_INFO_CONTEXT * ctx = (GL_INFO_CONTEXT *) malloc(sizeof(GL_INFO_CONTEXT));
     if (!ctx)
+    {
+        ogliLog("Not enough memory for context");
         return NULL;
+    }
 
     ctx->profile = profile;
 
@@ -64,18 +129,6 @@ GL_INFO_CONTEXT * ogliInit(OGLI_PROFILE profile)
 
 #ifdef __GLX__
 #endif
-
-    // get glGetStringi entry point if core profile is requested
-    if (profile == OGLI_CORE)
-    {
-        glGetStringi = (PFNGLGETSTRINGIPROC) ogliGetProcAddress((GLubyte *) "glGetStringi");
-        /* error happened */
-        if (glGetStringi == NULL)
-        {
-            free(ctx);
-            return NULL;
-        }
-    }
 
     ctx->active = GL_FALSE;
     memset(&ctx->iblock, 0, sizeof(GL_INFO_BLOCK));
@@ -210,6 +263,7 @@ GLboolean ogliQuery(GL_INFO_CONTEXT * ctx)
         {
             strcat(ctx->iblock.glExtensions, (char *) glGetStringi(GL_EXTENSIONS, idx));
             strcat(ctx->iblock.glExtensions, " ");
+            //ogliLog((char *) glGetStringi(GL_EXTENSIONS, idx));
         }
     }
     
@@ -239,9 +293,10 @@ static char * g_WNDCLASS = "LIBOGLI";
  */
 GLboolean ogliCreateContext(GL_INFO_CONTEXT * ctx)
 {
-    GLint pf;
-    WNDCLASS wc;
-    PIXELFORMATDESCRIPTOR pfd;
+    GLint                   pf;
+    HGLRC                   rc3;
+    WNDCLASS                wc;
+    PIXELFORMATDESCRIPTOR   pfd;
 
     if (!ctx)    /* validate input parameter */
         return GL_FALSE;
@@ -262,7 +317,10 @@ GLboolean ogliCreateContext(GL_INFO_CONTEXT * ctx)
 
     ctx->dc = GetDC(ctx->wnd);      /* obtain device context */
     if (!ctx->dc) 
+    {
+        ogliLog("OGLI library is not initialized");
         return GL_FALSE;
+    }
 
     /* legacy profile */
     memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR)); /* preparing to obtain a pixel format */
@@ -271,19 +329,46 @@ GLboolean ogliCreateContext(GL_INFO_CONTEXT * ctx)
     pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
     pf = ChoosePixelFormat(ctx->dc, &pfd);          /* select a pixel format */
     if (!pf)
+    {
+        ogliLog("Cannot select pixel format");
         return GL_FALSE;
+    }
 
     if (!SetPixelFormat(ctx->dc, pf, &pfd))
+    {
+        ogliLog("Pixel format is not accelerated");
         return GL_FALSE;
+    }
     
     /* create rendering context */
     ctx->rc = wglCreateContext(ctx->dc);
     if (!ctx->rc)
+    {
+        ogliLog("Context creation error");
         return GL_FALSE;
+    }
 
     /* make the rendering context current */
     if (!wglMakeCurrent(ctx->dc, ctx->rc))
+    {
+        ogliLog("Error making context current");
         return GL_FALSE;
+    }
+
+    if (ctx->profile == OGLI_CORE)
+    {
+        if (!ogliInitCore())
+        {
+            ogliLog("Error initialize core profile");
+            return GL_FALSE;
+        }
+
+        rc3 = wglCreateContextAttribsARB(ctx->dc, 0, NULL);
+        wglMakeCurrent(NULL, NULL);
+		wglDeleteContext(ctx->rc);
+        ctx->rc = rc3;
+		wglMakeCurrent(ctx->dc, ctx->rc);
+    }
 
     ctx->active = GL_TRUE;
     return GL_TRUE;
@@ -362,6 +447,13 @@ GLboolean ogliCreateContext(GL_INFO_CONTEXT * ctx)
     ctx->contextOrig = CGLGetCurrentContext();
     CGLSetCurrentContext(ctx->context);        
     CGLReleasePixelFormat(pf);
+
+    /* get glGetStringi entry point if core profile is requested */
+    if (profile == OGLI_CORE)
+    {
+        if (!ogliInitCore()))
+            return GL_FALSE;
+    }
 
     ctx->active = GL_TRUE;
         

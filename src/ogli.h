@@ -1,5 +1,11 @@
-#ifndef __GLINFO_H__
-#define __GLINFO_H__
+/*
+ *  OGLI.H
+ *  Header for OpenGL information query library. Coded by Trinh D.D. Nguyen
+ *  This library is a cross platform library, it runs on Windows (VC/MinGW), OSX and Linux.
+ *  OGLI is released under MIT licensed, please see LICENSE for more information.
+ */
+#ifndef _OGLI_LIB_
+#define _OGLI_LIB_    1
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +34,7 @@ extern "C" {
 
 #ifdef _MSC_VER						/* Microsoft Visual C++ compiler */
 #	pragma comment (lib, "opengl32.lib")
+#	pragma comment (lib, "glu32.lib")
 #	pragma comment (lib, "gdi32.lib")
 #	pragma warning (disable:4996)	/* enable preprocessor _CRT_SECURE_NO_WARNINGS */
 #endif
@@ -35,14 +42,23 @@ extern "C" {
 #define MAX_INFO_LENGTH (128)		/* maximum length of an information string */
 #define MAX_EXT_LENGTH  (10240)		/* maximum length of an extension string */
 
-#ifndef GL_SHADING_LANGUAGE_VERSION
-#   define GL_SHADING_LANGUAGE_VERSION  0x8B8C
+#define OGLI_MAJOR_VERSION  1       /* library version number */
+#define OGLI_MINOR_VERSION  0
+
+/* library platform */
+#ifdef  _WIN32
+#   ifdef _WIN64
+#       define  OGLI_PLATFORM   ("OGLI-64")
+#   else
+#       define  OGLI_PLATFORM   ("OGLI-32")
+#   endif
+#elif   __APPLE__
+#   define  OGLI_PLATFORM    ("OGLI-OSX")
+#else
+#   define  OGLI_PLATFORM    ("OGLI-LINUX")
 #endif
 
-#ifndef GL_NUM_EXTENSIONS
-#   define GL_NUM_EXTENSIONS            0x821D
-#endif
-
+/* OpenGL profile for querying information */
 typedef enum {OGLI_LEGACY, OGLI_CORE} OGLI_PROFILE;
 
 /* OpenGL version block */
@@ -78,21 +94,21 @@ typedef struct gl_info_block
 /* Context for OpenGL information query */
 typedef struct gl_info_context
 {
-    OGLI_PROFILE profile; /* query legacy or core profile */
-    GL_INFO_BLOCK iblock; /* OpenGL information block */
-    GLboolean active;     /* ready for information query flag */
+    OGLI_PROFILE    profile;    /* query legacy or core profile */
+    GL_INFO_BLOCK   iblock;     /* OpenGL information block */
+    GLboolean       active;     /* ready for information query flag */
 
   /*--- platform specific attributes ---*/
 #ifdef _WIN32
-    HWND wnd;     /* window's handle */
-    HDC dc;       /* device's context */
-    HGLRC rc;     /* rendering context */
+    HWND            wnd;        /* window's handle */
+    HDC             dc;         /* device's context */
+    HGLRC           rc;         /* rendering context */
 #elif __APPLE__
-    CGLContextObj context, contextOrig;
+    CGLContextObj   context;    /* context to use */
+    CGLContextObj   contextOrig;/* original context */
 #else
     /* POSIX */
 #endif
-
 } GL_INFO_CONTEXT;
 
 /*
@@ -105,11 +121,12 @@ typedef struct gl_info_context
  */
 
 GL_INFO_CONTEXT * ogliInit(OGLI_PROFILE profile);
-GLboolean ogliShutdown(GL_INFO_CONTEXT * ctx);
-GLboolean ogliCreateContext(GL_INFO_CONTEXT * ctx);
-GLboolean ogliDestroyContext(GL_INFO_CONTEXT * ctx);
-GLboolean ogliSupported(GL_INFO_CONTEXT * ctx, const char * extension);
-GLboolean ogliQuery(GL_INFO_CONTEXT * ctx);
+GLboolean   ogliShutdown(GL_INFO_CONTEXT * ctx);
+GLboolean   ogliCreateContext(GL_INFO_CONTEXT * ctx);
+GLboolean   ogliDestroyContext(GL_INFO_CONTEXT * ctx);
+GLboolean   ogliSupported(GL_INFO_CONTEXT * ctx, const char * extension);
+GLboolean   ogliQuery(GL_INFO_CONTEXT * ctx);
+GLuint      ogliGetVersion();
 
 #ifdef __cplusplus
 }
