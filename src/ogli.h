@@ -51,9 +51,9 @@ extern "C" {
 /* library platform */
 #ifdef  _WIN32
 #   ifdef _WIN64
-#       define  OGLI_PLATFORM   ("OGLI-64")
+#       define  OGLI_PLATFORM   ("OGLI-W64")
 #   else
-#       define  OGLI_PLATFORM   ("OGLI-32")
+#       define  OGLI_PLATFORM   ("OGLI-W32")
 #   endif
 #elif   __APPLE__
 #   define  OGLI_PLATFORM    ("OGLI-OSX")
