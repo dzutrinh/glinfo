@@ -4,6 +4,8 @@ BIN=bin/
 SRC=src/
 PROJECT=glinfo
 SOURCE=$(SRC)main.c $(SRC)ogli.c
+
+# YES = enable GLEW | NO = disable GLEW
 GLEW=NO
 
 # Platform detection
@@ -36,6 +38,9 @@ endif
 # Build rules
 all: $(SOURCE)
 	$(CC) $(CFLAGS) $(SOURCE) $(LFLAGS)
+
+setup:
+	mkdir bin
 
 clean:
 	$(RM) $(BINARY)
