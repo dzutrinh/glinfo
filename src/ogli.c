@@ -1,7 +1,8 @@
 /*
- *  OGLI.CPP
- *  Implementation for OpenGL information query library. Coded by Trinh D.D. Nguyen
- *  This library is a cross platform library, it runs on Windows (VC/MinGW), OSX and Linux.
+ *  OGLI.H
+ *  Header for OpenGL information query library. Coded by Trinh D.D. Nguyen
+ *  This library is a cross platform library, it runs on Windows (supports VC++ 2015
+ *  and MinGW), OSX and Linux.
  *  OGLI is released under MIT licensed, please see LICENSE for more information.
  */
 #include <stdio.h>

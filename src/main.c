@@ -13,6 +13,11 @@ const char * HELP_MSG = "OpenGL information query utility - v%d.%d (%s)\n"
                         "          -i  display OpenGL information, use combine with -e\n"
                         "          -v  display program's version number\n";
 
+GLboolean       extShow = GL_FALSE;
+GLboolean       infShow = GL_TRUE;
+GLboolean       valid = GL_FALSE;
+OGLI_PROFILE    profile = OGLI_LEGACY;
+
 void die(const char * msg)
 {
     fprintf(stderr, "ERROR: %s\n", msg);
@@ -32,12 +37,9 @@ void showVersions()
 #endif
 }
 
-int main(int argc, char **argv)
+GLboolean parseArgs(int argc, char ** argv)
 {
-    OGLI_PROFILE        profile = OGLI_LEGACY;
-    OGLI_CONTEXT        * ctx = NULL;
-    GLint               idx;
-    GLboolean           extShow = GL_FALSE, infShow = GL_TRUE, valid = GL_FALSE;
+    GLint       idx;
 
     if (argc > 1)
     {
@@ -47,13 +49,13 @@ int main(int argc, char **argv)
             if (strcmp(argv[idx], "-?") == 0)
             {
                 printf(HELP_MSG, GLINFO_MAJOR_VERSION, GLINFO_MINOR_VERSION, OGLI_PLATFORM);
-                return 0;
+                return GL_FALSE;
             }
 
             if (strcmp(argv[idx], "-v") == 0)
             {
                 showVersions();
-                return 0;
+                return GL_FALSE;
             }
 
             if (strcmp(argv[idx], "-c") == 0)
@@ -78,17 +80,11 @@ int main(int argc, char **argv)
         if(!valid)   
             die("Unknown command line option.");
     }
+    return GL_TRUE;
+}
 
-    ctx = ogliInit(profile);    
-    if (!ctx)
-        die("Cannot init OGLI library.");
-
-    if (!ogliCreateContext(ctx))
-        die("Error creating OpenGL context.");
-
-    if (!ogliQuery(ctx))
-        die("Error fetching OpenGL information.");
-
+void showInfo(const OGLI_CONTEXT * ctx)
+{
     printf(">>> OpenGL\n");
     if (infShow)
     {
@@ -110,11 +106,32 @@ int main(int argc, char **argv)
 
     if (extShow)
         printf("%s\n", ctx->iblock.gluExtensions);
+}
 
+int main(int argc, char **argv)
+{
+    OGLI_CONTEXT        * ctx = NULL;
+
+    if (!parseArgs(argc, argv))
+    {
+        return -1;
+    }
+
+    ctx = ogliInit(profile);    
+    if (!ctx)
+        die("Cannot init OGLI library.");
+
+    if (!ogliCreateContext(ctx))
+        die("Error creating OpenGL context.");
+
+    if (!ogliQuery(ctx))
+        die("Error fetching OpenGL information.");
 
     if (!ogliDestroyContext(ctx))
         die("Error destroying rendering OpenGL context.");
     
+    showInfo(ctx);
+
     ogliShutdown(ctx);
 
     return  0;
