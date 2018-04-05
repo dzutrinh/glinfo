@@ -8,6 +8,7 @@
 #include <string.h>
 #include "ogli.h"
 
+#ifndef OGLI_USE_GLEW
 /*----------------------------------------------------------------------------------------------------------*/
 /*                              PORTIONS ARE FROM GLEXT.H AND WGLEXT.H                                      */
 /*----------------------------------------------------------------------------------------------------------*/
@@ -27,9 +28,11 @@ PFNGLGETSTRINGIPROC glGetStringi = NULL;
     PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 #endif
 
+#endif
+
 void ogliLog(const char * msg)
 {
-#ifdef _OGLI_DEBUG_
+#ifdef OGLI_DEBUG
     fprintf(stderr, "%s\n", msg);
 #endif
 }
@@ -37,6 +40,8 @@ void ogliLog(const char * msg)
 /*----------------------------------------------------------------------------------------------------------*/
 /*                                        PLATFORM INDEPENDENT API                                          */
 /*----------------------------------------------------------------------------------------------------------*/
+
+#ifndef OGLI_USE_GLEW
 
 /* 
  * ogliGetProcAddress(): cross platform function pointer fetcher
@@ -66,12 +71,16 @@ void * NSGetProcAddress (const GLubyte *name)
     free(symbolName);
     if(symbol)
         return NSAddressOfSymbol(symbol);
+    
+    ogliLog("Failed to obtain function entry point");
     return NULL;
 }
 
 #   define ogliGetProcAddress(name)  NSGetProcAddress(name)
 #else
 #   define ogliGetProcAddress(name)  glxGetProcAddress((char *) name)
+#endif
+
 #endif
 
 /* 
@@ -81,22 +90,32 @@ void * NSGetProcAddress (const GLubyte *name)
  */
 static GLboolean ogliInitCore()
 {
+#ifndef OGLI_USE_GLEW
     glGetStringi = (PFNGLGETSTRINGIPROC) ogliGetProcAddress((GLubyte *) "glGetStringi");
     if (!glGetStringi)
     {
-        ogliLog("Error getting glGetStringi()");
+        ogliLog("Failed to obtain glGetStringi()");
         return GL_FALSE;
     }
 
-#ifdef  _WIN32
-    wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC) ogliGetProcAddress((GLubyte *) "wglCreateContextAttribsARB");
-    if (!wglCreateContextAttribsARB)
+    #ifdef  _WIN32
+        wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC) ogliGetProcAddress((GLubyte *) "wglCreateContextAttribsARB");
+        if (!wglCreateContextAttribsARB)
+        {
+            ogliLog("Failed to obtain wglCreateContextAttribsARB()");
+            return GL_FALSE;
+        }
+    #endif
+
+#else
+    glewExperimental = GL_TRUE;
+    GLenum err = glewInit();
+    if (err != GLEW_OK)
     {
-        ogliLog("Error getting wglCreateContextAttribsARB()");
+        ogliLog("Failed to init GLEW library");
         return GL_FALSE;
     }
 #endif
-
     return GL_TRUE;
 }
 
@@ -172,10 +191,16 @@ GLboolean ogliSupported(OGLI_CONTEXT * ctx, const char *extension)
     const char *where, *terminator;
 
     if (!ctx)
+    {
+        ogliLog("Invalid OGLI context");
         return GL_FALSE;
+    }
     
     if (!ctx->active)
+    {
+        ogliLog("OGLI is not ready");
         return GL_FALSE;
+    }
 
     /* Extension names should not have spaces. */
     where = strchr(extension, ' ');
@@ -210,10 +235,16 @@ GLboolean ogliQuery(OGLI_CONTEXT * ctx)
     GLint numExts, idx;
 
     if (!ctx)
+    {
+        ogliLog("Invalid OGLI context");
         return GL_FALSE;
+    }
 
     if (!ctx->active)
+    {
+        ogliLog("OGLI is not ready");
         return GL_FALSE;
+    }
     
     /* reads the basic OpenGL information and store them into our information block */
     strcpy((char *) ctx->iblock.glRenderer,  (char *) glGetString(GL_RENDERER));
@@ -243,8 +274,9 @@ GLboolean ogliQuery(OGLI_CONTEXT * ctx)
         strcpy((char *) ctx->iblock.glSL, "None");
 
     /* stores the extensions list for later use */ 
-    if (ctx->profile == OGLI_LEGACY)
-    {
+    if (ctx->profile == OGLI_LEGACY ||                          /* use legacy profile */
+        (ctx->profile == OGLI_CORE && glGetStringi == NULL))    /* or error while init core profile */
+    {                                                           /* we use the old way of getting information */
         /* copy the extensions string */
         ext = (char *) glGetString(GL_EXTENSIONS);
         if (ext)
@@ -298,9 +330,11 @@ static char * g_WNDCLASS = "LIBOGLI";
 GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
 {
     GLint                   pf;
-    HGLRC                   rc3;
     WNDCLASS                wc;
     PIXELFORMATDESCRIPTOR   pfd;
+#ifndef OGLI_USE_GLEW
+    HGLRC                   rc3;
+#endif
 
     if (!ctx)    /* validate input parameter */
         return GL_FALSE;
@@ -363,15 +397,19 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
     {
         if (!ogliInitCore())
         {
-            ogliLog("Error initialize core profile");
-            return GL_FALSE;
+            ogliLog("Error initialize core profile, switch back to legacy");
         }
 
-        rc3 = wglCreateContextAttribsARB(ctx->dc, 0, NULL);
-        wglMakeCurrent(NULL, NULL);
-		wglDeleteContext(ctx->rc);
-        ctx->rc = rc3;
-		wglMakeCurrent(ctx->dc, ctx->rc);
+#ifndef OGLI_USE_GLEW
+        if (wglCreateContextAttribsARB != NULL)
+        {
+            rc3 = wglCreateContextAttribsARB(ctx->dc, 0, NULL);
+            wglMakeCurrent(NULL, NULL);
+		    wglDeleteContext(ctx->rc);
+            ctx->rc = rc3;
+		    wglMakeCurrent(ctx->dc, ctx->rc);
+        }
+#endif
     }
 
     ctx->active = GL_TRUE;
@@ -386,10 +424,16 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
 GLboolean ogliDestroyContext(OGLI_CONTEXT * ctx)
 {
     if (!ctx)   /* validate input parameter */
+    {
+        ogliLog("Invalid OGLI context");
         return GL_FALSE;
+    }
 
     if (!ctx->active)
+    {
+        ogliLog("OGLI is not ready");
         return GL_FALSE;
+    }
 
     if (ctx->rc)    /* release the rendering context */
         wglMakeCurrent(NULL, NULL);

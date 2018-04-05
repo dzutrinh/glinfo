@@ -4,6 +4,7 @@ BIN=bin/
 SRC=src/
 PROJECT=glinfo
 SOURCE=$(SRC)main.c $(SRC)ogli.c
+GLEW=NO
 
 # Platform detection
 ifeq ($(OS),Windows_NT)							# WINDOWS
@@ -25,6 +26,11 @@ else
 		LFLAGS=-framework OpenGL
 	endif
 	endif	
+endif
+
+ifeq ($(GLEW), YES)
+	CFLAGS+=-DOGLI_USE_GLEW
+	LFLAGS+=-lglew32
 endif
 
 # Build rules

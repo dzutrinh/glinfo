@@ -19,6 +19,19 @@ void die(const char * msg)
     exit(-1);
 }
 
+void showVersions()
+{
+    printf("OpenGL Information Query v%d.%d\n"
+           "Coded by Trinh D.D. Nguyen\n", GLINFO_MAJOR_VERSION,
+                                           GLINFO_MINOR_VERSION);
+    printf("Information query library v%d.%d (%s)\n", OGLI_MAJOR_VERSION,
+                                                      OGLI_MINOR_VERSION, 
+                                                      OGLI_PLATFORM);
+#ifdef  OGLI_USE_GLEW
+    printf("GLEW library v%s\n", glewGetString(GLEW_VERSION));
+#endif
+}
+
 int main(int argc, char **argv)
 {
     OGLI_PROFILE        profile = OGLI_LEGACY;
@@ -39,12 +52,7 @@ int main(int argc, char **argv)
 
             if (strcmp(argv[idx], "-v") == 0)
             {
-                printf("OpenGL Information Query v%d.%d\n"
-                       "Coded by Trinh D.D. Nguyen\n", GLINFO_MAJOR_VERSION,
-                                                       GLINFO_MINOR_VERSION);
-                printf("Information query library v%d.%d (%s)\n", OGLI_MAJOR_VERSION,
-                                                                  OGLI_MINOR_VERSION, 
-                                                                  OGLI_PLATFORM);
+                showVersions();
                 return 0;
             }
 

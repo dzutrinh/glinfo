@@ -11,20 +11,32 @@
 extern "C" {
 #endif 
 
+/* to make use of the GLEW library, enable the line below */
+//#define OGLI_USE_GLEW 1
+
 /* for debugging purpose, enable the line below */
-/* #define _OGLI_DEBUG_    1 */
+//#define OGLI_DEBUG    1
 
 #include <stdlib.h>
 #include <string.h>
 
 #ifdef _WIN32
 #	include <windows.h>
-#   include <GL/gl.h>
-#   include <GL/glu.h>
+#   ifndef  OGLI_USE_GLEW
+#       include <GL/gl.h>
+#       include <GL/glu.h>
+#   else
+#       include <GL/glew.h>
+#       include <GL/wglew.h>
+#   endif
 #else
 #   ifdef   __APPLE__
-#       include <OpenGL/OpenGL.h>
-#       include <OpenGL/glu.h>
+#       ifndef  OGLI_USE_GLEW
+#           include <OpenGL/OpenGL.h>
+#           include <OpenGL/glu.h>
+#       else
+#           include <GL/glew.h>
+#       endif
 #       include <mach-o/dyld.h>
 #   else
 #       include <unistd.h>
@@ -39,6 +51,9 @@ extern "C" {
 #	pragma comment (lib, "opengl32.lib")
 #	pragma comment (lib, "glu32.lib")
 #	pragma comment (lib, "gdi32.lib")
+#   ifdef   OGLI_USE_GLEW
+#       pragma comment (lib, "glew32.lib")
+#   endif
 #	pragma warning (disable:4996)	/* enable preprocessor _CRT_SECURE_NO_WARNINGS */
 #endif
 
