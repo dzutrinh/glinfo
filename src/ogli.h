@@ -32,12 +32,11 @@ extern "C" {
 #   endif
 #else
 #   ifdef   __APPLE__
-#       ifndef  OGLI_USE_GLEW
-#           include <OpenGL/OpenGL.h>
-#           include <OpenGL/glu.h>
-#       else
+#       ifdef  OGLI_USE_GLEW
 #           include <GL/glew.h>
 #       endif
+#       include <OpenGL/OpenGL.h>
+#       include <OpenGL/glu.h>
 #       include <mach-o/dyld.h>
 #   else
 #       include <unistd.h>

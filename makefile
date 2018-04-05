@@ -12,6 +12,11 @@ ifeq ($(OS),Windows_NT)							# WINDOWS
 	CFLAGS=-Wall -O2 -o $(BINARY)
 	LFLAGS=-s -lgdi32 -lopengl32 -lglu32
 	RM=del /f
+
+	ifeq ($(GLEW), YES)
+		CFLAGS+=-DOGLI_USE_GLEW
+		LFLAGS+=-lglew32
+	endif
 else
 	UNAME_S := $(shell uname -s)
 	BINARY=$(BIN)$(PROJECT)
@@ -25,12 +30,12 @@ else
 		CFLAGS=-Wno-deprecated -Wno-enum-conversion -o $(BINARY)
 		LFLAGS=-framework OpenGL
 	endif
-	endif	
-endif
+	endif
 
-ifeq ($(GLEW), YES)
-	CFLAGS+=-DOGLI_USE_GLEW
-	LFLAGS+=-lglew32
+	ifeq ($(GLEW), YES)
+		CFLAGS+=-DOGLI_USE_GLEW
+		LFLAGS+=-lglew
+	endif	
 endif
 
 # Build rules
