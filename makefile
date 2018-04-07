@@ -27,17 +27,16 @@ else
 	ifeq ($(UNAME_S),Linux)						# LINUX
 		CFLAGS=-O2 -o $(BINARY)
 		LFLAGS=-lGL -lGLU -lX11
+		ifeq ($(GLEW), YES)
+			CFLAGS+=-DOGLI_USE_GLEW
+			LFLAGS+=-lglew
+		endif	
 	else
 	ifeq ($(UNAME_S),Darwin)					# OSX
 		CFLAGS=-Wno-deprecated -Wno-enum-conversion -o $(BINARY)
 		LFLAGS=-framework OpenGL
 	endif
 	endif
-
-	ifeq ($(GLEW), YES)
-		CFLAGS+=-DOGLI_USE_GLEW
-		LFLAGS+=-lglew
-	endif	
 endif
 
 # Build rules

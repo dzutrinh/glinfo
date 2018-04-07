@@ -9,6 +9,7 @@
 #include <string.h>
 #include "ogli.h"
 
+#ifndef __APPLE__
 #ifndef OGLI_USE_GLEW
 /*----------------------------------------------------------------------------------------------------------*/
 /*                              PORTIONS ARE FROM GLEXT.H AND WGLEXT.H                                      */
@@ -29,6 +30,7 @@ PFNGLGETSTRINGIPROC glGetStringi = NULL;
     PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 #endif
 
+#endif
 #endif
 
 void ogliLog(const char * msg)
@@ -51,8 +53,8 @@ void ogliLog(const char * msg)
  */
 #ifdef  _WIN32
 #   define ogliGetProcAddress(name)  wglGetProcAddress((char *) name)
+/*
 #elif   __APPLE__
-
 #define OPENGL_FRAMEWORK_OSX    ("/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL")
 
 void * NSGetProcAddress (const GLubyte *name)
@@ -78,10 +80,9 @@ void * NSGetProcAddress (const GLubyte *name)
 }
 
 #   define ogliGetProcAddress(name)  NSGetProcAddress(name)
+*/
 #else
 #   define ogliGetProcAddress(name)  glxGetProcAddress((char *) name)
-#endif
-
 #endif
 
 /* 
@@ -91,6 +92,7 @@ void * NSGetProcAddress (const GLubyte *name)
  */
 static GLboolean ogliInitCore()
 {
+#ifndef __APPLE__
 #ifndef OGLI_USE_GLEW
     glGetStringi = (PFNGLGETSTRINGIPROC) ogliGetProcAddress((GLubyte *) "glGetStringi");
     if (!glGetStringi)
@@ -107,7 +109,6 @@ static GLboolean ogliInitCore()
             return GL_FALSE;
         }
     #endif
-
 #else
     glewExperimental = GL_TRUE;
     GLenum err = glewInit();
@@ -116,6 +117,7 @@ static GLboolean ogliInitCore()
         ogliLog("Failed to init GLEW library");
         return GL_FALSE;
     }
+#endif
 #endif
     return GL_TRUE;
 }
