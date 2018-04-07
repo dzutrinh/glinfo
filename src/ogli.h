@@ -36,8 +36,8 @@ extern "C" {
 #           include <GL/glew.h>
 #       endif
 #       include <OpenGL/OpenGL.h>
+#       include <OpenGL/gl3.h>
 #       include <OpenGL/glu.h>
-#       include <mach-o/dyld.h>
 #   else
 #       include <unistd.h>
 #       include <X11/Xlib.h>

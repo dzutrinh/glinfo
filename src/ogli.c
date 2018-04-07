@@ -9,6 +9,9 @@
 #include <string.h>
 #include "ogli.h"
 
+#define GL_SHADING_LANGUAGE_VERSION  0x8B8C
+#define GL_NUM_EXTENSIONS            0x821D
+
 #ifndef __APPLE__
 #ifndef OGLI_USE_GLEW
 /*----------------------------------------------------------------------------------------------------------*/
@@ -18,9 +21,6 @@
 #ifndef APIENTRY
 #   define APIENTRY
 #endif
-
-#define GL_SHADING_LANGUAGE_VERSION  0x8B8C
-#define GL_NUM_EXTENSIONS            0x821D
 
 typedef const GLubyte *(APIENTRY *  PFNGLGETSTRINGIPROC) (GLenum name, GLuint index); 
 PFNGLGETSTRINGIPROC glGetStringi = NULL;
@@ -53,36 +53,12 @@ void ogliLog(const char * msg)
  */
 #ifdef  _WIN32
 #   define ogliGetProcAddress(name)  wglGetProcAddress((char *) name)
-/*
-#elif   __APPLE__
-#define OPENGL_FRAMEWORK_OSX    ("/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL")
+#elif __APPLE__
 
-void * NSGetProcAddress (const GLubyte *name)
-{
-    static const struct mach_header* image = NULL;
-    NSSymbol symbol;
-    char* symbolName;
-
-    if (NULL == image)
-        image = NSAddImage(OPENGL_FRAMEWORK_OSX, NSADDIMAGE_OPTION_RETURN_ON_ERROR);
-
-    symbolName = malloc(strlen((const char*)name) + 2);
-    strcpy(symbolName+1, (const char*)name);
-    symbolName[0] = '_';
-    symbol = NULL;
-    symbol = image ? NSLookupSymbolInImage(image, symbolName, NSLOOKUPSYMBOLINIMAGE_OPTION_BIND | NSLOOKUPSYMBOLINIMAGE_OPTION_RETURN_ON_ERROR) : NULL;
-    free(symbolName);
-    if(symbol)
-        return NSAddressOfSymbol(symbol);
-    
-    ogliLog("Failed to obtain function entry point");
-    return NULL;
-}
-
-#   define ogliGetProcAddress(name)  NSGetProcAddress(name)
-*/
 #else
 #   define ogliGetProcAddress(name)  glxGetProcAddress((char *) name)
+#endif
+
 #endif
 
 /* 
@@ -277,9 +253,13 @@ GLboolean ogliQuery(OGLI_CONTEXT * ctx)
         strcpy((char *) ctx->iblock.glSL, "None");
 
     /* stores the extensions list for later use */ 
+#ifndef __APPLE__
     if (ctx->profile == OGLI_LEGACY ||                          /* use legacy profile */
         (ctx->profile == OGLI_CORE && glGetStringi == NULL))    /* or error while init core profile */
-    {                                                           /* we use the old way of getting information */
+#else
+    if (ctx->profile == OGLI_LEGACY)
+#endif
+    {                                                           
         /* copy the extensions string */
         ext = (char *) glGetString(GL_EXTENSIONS);
         if (ext)

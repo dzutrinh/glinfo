@@ -33,7 +33,7 @@ else
 		endif	
 	else
 	ifeq ($(UNAME_S),Darwin)					# OSX
-		CFLAGS=-Wno-deprecated -Wno-enum-conversion -o $(BINARY)
+		CFLAGS=-Wno-deprecated -Wno-enum-conversion -Wno-\#warnings -o $(BINARY)
 		LFLAGS=-framework OpenGL
 	endif
 	endif
