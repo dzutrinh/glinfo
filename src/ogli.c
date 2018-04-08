@@ -1,10 +1,32 @@
-/*
- *  OGLI.H
- *  Header for OpenGL information query library. Coded by Trinh D.D. Nguyen
- *  This library is a cross platform library, it runs on Windows (supports VC++ 2015
- *  and MinGW), OSX and Linux.
- *  OGLI is released under MIT licensed, please see LICENSE for more information.
- */
+/* OpenGL Information Query Library
+**
+** Copyrights (c) 2018 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
+** All Rights Reserved
+** 
+** Redistribution and use in source and binary forms, with or without 
+** modification, are permitted provided that the following conditions are met:
+** 
+** * Redistributions of source code must retain the above copyright notice, 
+**   this list of conditions and the following disclaimer.
+** * Redistributions in binary form must reproduce the above copyright notice, 
+**   this list of conditions and the following disclaimer in the documentation 
+**   and/or other materials provided with the distribution.
+** * The name of the author may be used to endorse or promote products 
+**   derived from this software without specific prior written permission.
+**
+** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+** AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+** IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+** ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+** LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+** CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+** SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+** INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+** CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+** THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include "ogli.h"
@@ -41,11 +63,6 @@ void ogliLog(const char * msg)
 /*----------------------------------------------------------------------------------------------------------*/
 
 #ifndef OGLI_USE_GLEW
-/* 
- * ogliGetProcAddress(): cross platform function pointer fetcher
- * Input: name of the function to fetch
- * Output: entry-point to the function
- */
 #   ifdef  _WIN32
 #       define ogliGetProcAddress(name)  wglGetProcAddress((char *) name)
 #   elif __APPLE__
@@ -55,11 +72,6 @@ void ogliLog(const char * msg)
 #   endif /* LINUX */
 #endif /* OGLI_USE_GLEW */
 
-/* 
- * ogliInitCore(): initialize the OpenGL for core profile 
- * Input : none
- * Output: GL_TRUE if success.
- */
 static GLboolean ogliInitCore()
 {
 #ifndef __APPLE__
@@ -96,11 +108,6 @@ GLuint ogliGetVersion()
     return  (OGLI_MAJOR_VERSION << 8 | OGLI_MINOR_VERSION);
 }
 
-/* 
- * ogliInit(): initialize the OpenGL information query engine 
- * Input : profile to request
- * Output: a pointer to an allocated OGLI_CONTEXT structure, NULL if error occured.
- */
 OGLI_CONTEXT * ogliInit(OGLI_PROFILE profile)
 {
     OGLI_CONTEXT * ctx = (OGLI_CONTEXT *) malloc(sizeof(OGLI_CONTEXT));
@@ -131,11 +138,6 @@ OGLI_CONTEXT * ogliInit(OGLI_PROFILE profile)
     return ctx;
 }
 
-/* 
- * ogliShutdown(): shutdown the OpenGL information query engine 
- * Input : pointer to the allocated OGLI_CONTEXT structure
- * Output: TRUE if suceed.
- */
 GLboolean ogliShutdown(OGLI_CONTEXT * ctx)
 {
     if (!ctx)
@@ -151,12 +153,6 @@ GLboolean ogliShutdown(OGLI_CONTEXT * ctx)
     return GL_TRUE;
 }
 
-/* 
- * ogliSupported(): check if an extension is supported 
- * Input : ctx: OGLI_CONTEXT structure.
- *         extension: extension to check. 
- * Output: TRUE if supported.
- */
 GLboolean ogliSupported(OGLI_CONTEXT * ctx, const char *extension)
 {
     const char *start;
@@ -196,11 +192,6 @@ GLboolean ogliSupported(OGLI_CONTEXT * ctx, const char *extension)
     return GL_FALSE;
 }
 
-/* 
- * ogliQuery(): query information from the OpenGL renderer
- * Input : pointer to the allocated OGLI_CONTEXT structure
- * Output: TRUE if suceed.
- */
 GLboolean ogliQuery(OGLI_CONTEXT * ctx)
 {
     char *  glsl, * ext, * tmp;
@@ -298,11 +289,6 @@ GLboolean ogliQuery(OGLI_CONTEXT * ctx)
 /* class name and window's title */
 static char * g_WNDCLASS = "LIBOGLI";
 
-/* 
- * ogliCreateContext(): create an OpenGL rendering context using WGL API on Win32
- * Input : pointer to the allocated OGLI_CONTEXT structure
- * Output: TRUE if suceed.
- */
 GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
 {
     GLint                   pf;
@@ -392,11 +378,6 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
     return GL_TRUE;
 }
 
-/* 
- * ogliDestroyContext(): destroy the created OpenGL rendering context
- * Input : pointer to the allocated OGLI_CONTEXT structure
- * Output: TRUE if suceed.
- */
 GLboolean ogliDestroyContext(OGLI_CONTEXT * ctx)
 {
     if (!ctx)   /* validate input parameter */
@@ -436,11 +417,6 @@ GLboolean ogliDestroyContext(OGLI_CONTEXT * ctx)
 /*----------------------------------------------------------------------------------------------------------*/
 #ifdef __APPLE__
 
-/* 
- * ogliCreateContext(): create an OpenGL rendering context using WGL API on Win32
- * Input : pointer to the allocated OGLI_CONTEXT structure
- * Output: TRUE if suceed.
- */
 GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
 {
     CGLPixelFormatAttribute attribLegacy[] = {kCGLPFAOpenGLProfile, kCGLOGLPVersion_Legacy,   0};
@@ -484,11 +460,6 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
     return GL_TRUE;
 }
 
-/* 
- * ogliDestroyContext(): destroy the created OpenGL rendering context
- * Input : pointer to the allocated OGLI_CONTEXT structure
- * Output: TRUE if suceed.
- */
 GLboolean ogliDestroyContext(OGLI_CONTEXT * ctx)
 {
     if (!ctx) 
