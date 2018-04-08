@@ -12,26 +12,22 @@
 #define GL_SHADING_LANGUAGE_VERSION  0x8B8C
 #define GL_NUM_EXTENSIONS            0x821D
 
-#ifndef __APPLE__
-#ifndef OGLI_USE_GLEW
 /*----------------------------------------------------------------------------------------------------------*/
 /*                              PORTIONS ARE FROM GLEXT.H AND WGLEXT.H                                      */
 /*----------------------------------------------------------------------------------------------------------*/
-
-#ifndef APIENTRY
-#   define APIENTRY
-#endif
-
-typedef const GLubyte *(APIENTRY *  PFNGLGETSTRINGIPROC) (GLenum name, GLuint index); 
-PFNGLGETSTRINGIPROC glGetStringi = NULL;
-
-#ifdef _WIN32
-    typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int *attribList); 
-    PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
-#endif
-
-#endif
-#endif
+#ifndef __APPLE__
+#   ifndef OGLI_USE_GLEW
+#       ifndef APIENTRY
+#           define APIENTRY
+#       endif /* APIENTRY */
+        typedef const GLubyte *(APIENTRY *  PFNGLGETSTRINGIPROC) (GLenum name, GLuint index); 
+        PFNGLGETSTRINGIPROC glGetStringi = NULL;
+#       ifdef _WIN32
+            typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int *attribList); 
+            PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
+#       endif /* _WIN32 */
+#   endif /* OGLI_USE_GLEW */
+#endif /* __APPLE__ */
 
 void ogliLog(const char * msg)
 {
@@ -45,21 +41,19 @@ void ogliLog(const char * msg)
 /*----------------------------------------------------------------------------------------------------------*/
 
 #ifndef OGLI_USE_GLEW
-
 /* 
  * ogliGetProcAddress(): cross platform function pointer fetcher
  * Input: name of the function to fetch
  * Output: entry-point to the function
  */
-#ifdef  _WIN32
-#   define ogliGetProcAddress(name)  wglGetProcAddress((char *) name)
-#elif __APPLE__
+#   ifdef  _WIN32
+#       define ogliGetProcAddress(name)  wglGetProcAddress((char *) name)
+#   elif __APPLE__
 
-#else
-#   define ogliGetProcAddress(name)  glxGetProcAddress((char *) name)
-#endif
-
-#endif
+#   else /* LINUX */
+#       define ogliGetProcAddress(name)  glxGetProcAddress((char *) name)
+#   endif /* LINUX */
+#endif /* OGLI_USE_GLEW */
 
 /* 
  * ogliInitCore(): initialize the OpenGL for core profile 
@@ -69,32 +63,31 @@ void ogliLog(const char * msg)
 static GLboolean ogliInitCore()
 {
 #ifndef __APPLE__
-#ifndef OGLI_USE_GLEW
-    glGetStringi = (PFNGLGETSTRINGIPROC) ogliGetProcAddress((GLubyte *) "glGetStringi");
-    if (!glGetStringi)
-    {
-        ogliLog("Failed to obtain glGetStringi()");
-        return GL_FALSE;
-    }
-
-    #ifdef  _WIN32
-        wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC) ogliGetProcAddress((GLubyte *) "wglCreateContextAttribsARB");
-        if (!wglCreateContextAttribsARB)
+#   ifndef OGLI_USE_GLEW
+        glGetStringi = (PFNGLGETSTRINGIPROC) ogliGetProcAddress((GLubyte *) "glGetStringi");
+        if (!glGetStringi)
         {
-            ogliLog("Failed to obtain wglCreateContextAttribsARB()");
+            ogliLog("Failed to obtain glGetStringi()");
             return GL_FALSE;
         }
-    #endif
-#else
-    glewExperimental = GL_TRUE;
-    GLenum err = glewInit();
-    if (err != GLEW_OK)
-    {
-        ogliLog("Failed to init GLEW library");
-        return GL_FALSE;
-    }
-#endif
-#endif
+        #ifdef  _WIN32
+            wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC) ogliGetProcAddress((GLubyte *) "wglCreateContextAttribsARB");
+            if (!wglCreateContextAttribsARB)
+            {
+                ogliLog("Failed to obtain wglCreateContextAttribsARB()");
+                return GL_FALSE;
+            }
+#       endif /* _WIN32 */
+#   else
+        glewExperimental = GL_TRUE;
+        GLenum err = glewInit();
+        if (err != GLEW_OK)
+        {
+            ogliLog("Failed to init GLEW library");
+            return GL_FALSE;
+        }
+#   endif /* OGLI_USE_GLEW */
+#endif  /* __APPLE__ */
     return GL_TRUE;
 }
 
@@ -123,15 +116,15 @@ OGLI_CONTEXT * ogliInit(OGLI_PROFILE profile)
     ctx->wnd = NULL;
     ctx->dc = NULL;
     ctx->rc = NULL;
-#endif
+#endif /* _WIN32 */
 
 #ifdef __APPLE__
     ctx->context = NULL;
     ctx->contextOrig = NULL;
-#endif
+#endif /* __APPLE__ */
 
 #ifdef __GLX__
-#endif
+#endif /* __GLX__ */
 
     ctx->active = GL_FALSE;
     memset(&ctx->iblock, 0, sizeof(GL_INFO_BLOCK));
@@ -317,7 +310,7 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
     PIXELFORMATDESCRIPTOR   pfd;
 #ifndef OGLI_USE_GLEW
     HGLRC                   rc3;
-#endif
+#endif /* OGLI_USE_GLEW */
 
     if (!ctx)    /* validate input parameter */
         return GL_FALSE;
@@ -392,7 +385,7 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
             ctx->rc = rc3;
 		    wglMakeCurrent(ctx->dc, ctx->rc);
         }
-#endif
+#endif /* OGLI_USE_GLEW */
     }
 
     ctx->active = GL_TRUE;
@@ -436,7 +429,7 @@ GLboolean ogliDestroyContext(OGLI_CONTEXT * ctx)
     ctx->active = GL_FALSE;
     return GL_TRUE;
 }
-#endif
+#endif /* _WIN32 */
 
 /*----------------------------------------------------------------------------------------------------------*/
 /*                                      OSX PLATFORM SPECIFIC CODE                                          */
@@ -509,4 +502,4 @@ GLboolean ogliDestroyContext(OGLI_CONTEXT * ctx)
     return GL_TRUE;
 }
 
-#endif
+#endif /* __APPLE__ */

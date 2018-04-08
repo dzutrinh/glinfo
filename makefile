@@ -1,16 +1,16 @@
 # Common macros
 CC=gcc
-BIN=bin/
-SRC=src/
+BIN=bin
+SRC=src
 PROJECT=glinfo
-SOURCE=$(SRC)main.c $(SRC)ogli.c
+SOURCE=$(SRC)/main.c $(SRC)/ogli.c
 
 # YES = enable GLEW | NO = disable GLEW
 GLEW=NO
 
 # Platform detection
 ifeq ($(OS),Windows_NT)							# WINDOWS
-	BINARY=$(BIN)$(PROJECT).exe
+	BINARY=$(BIN)/$(PROJECT).exe
 	CFLAGS=-Wall -O2 -o $(BINARY)
 	LFLAGS=-s -lgdi32 -lopengl32 -lglu32
 	RM=del /f
@@ -19,9 +19,12 @@ ifeq ($(OS),Windows_NT)							# WINDOWS
 		CFLAGS+=-DOGLI_USE_GLEW
 		LFLAGS+=-lglew32
 	endif
+	
+	MD=if not exist $(BIN)/NUL mkdir $(BIN)
+
 else
 	UNAME_S := $(shell uname -s)
-	BINARY=$(BIN)$(PROJECT)
+	BINARY=$(BIN)/$(PROJECT)
 	RM=rm -f
 
 	ifeq ($(UNAME_S),Linux)						# LINUX
@@ -37,14 +40,13 @@ else
 		LFLAGS=-framework OpenGL
 	endif
 	endif
+	MD=mkdir -p $(BIN)
 endif
 
 # Build rules
 all: $(SOURCE)
+	$(MD)
 	$(CC) $(CFLAGS) $(SOURCE) $(LFLAGS)
-
-setup:
-	mkdir bin
 
 clean:
 	$(RM) $(BINARY)
