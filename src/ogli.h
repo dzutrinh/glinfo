@@ -54,9 +54,6 @@ extern "C" {
 #   endif
 #else
 #   ifdef   __APPLE__
-#       ifdef  OGLI_USE_GLEW
-#           include <GL/glew.h>
-#       endif
 #       include <OpenGL/OpenGL.h>
 #       include <OpenGL/gl3.h>
 #       include <OpenGL/glu.h>
@@ -69,7 +66,7 @@ extern "C" {
 #   endif
 #endif
 
-#ifdef _MSC_VER						/* Microsoft Visual C++ compiler */
+#ifdef _MSC_VER				/* Microsoft Visual C++ compiler */
 #	pragma comment (lib, "opengl32.lib")
 #	pragma comment (lib, "glu32.lib")
 #	pragma comment (lib, "gdi32.lib")
@@ -79,7 +76,7 @@ extern "C" {
 #	pragma warning (disable:4996)	/* enable preprocessor _CRT_SECURE_NO_WARNINGS */
 #endif
 
-#define OGLI_MAX_INFO_LENGTH (128)		/* maximum length of an information string */
+#define OGLI_MAX_INFO_LENGTH (128)	/* maximum length of an information string */
 #define OGLI_MAX_EXT_LENGTH  (10240)	/* maximum length of an extension string */
 
 #define OGLI_MAJOR_VERSION  1           /* library version number */
@@ -138,7 +135,7 @@ typedef struct gl_info_context
     GL_INFO_BLOCK   iblock;     /* OpenGL information block */
     GLboolean       active;     /* ready for information query flag */
 
-  /*--- platform specific attributes ---*/
+/*--- platform specific attributes ---*/
 #ifdef _WIN32
     HWND            wnd;        /* window's handle */
     HDC             dc;         /* device's context */
@@ -147,7 +144,7 @@ typedef struct gl_info_context
     CGLContextObj   context;    /* context to use */
     CGLContextObj   contextOrig;/* original context */
 #else
-    /* POSIX */
+/* POSIX */
 #endif
 } OGLI_CONTEXT;
 
