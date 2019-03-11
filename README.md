@@ -12,3 +12,6 @@ is still under development. I'm quite lazy atm.
 
 ## Compile
 * Just type 'make'
+
+## To do
+* Export results to a text file for later references
