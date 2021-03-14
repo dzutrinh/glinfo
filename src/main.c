@@ -34,8 +34,8 @@
 
 const char * HELP_MSG = "OpenGL information query utility - v%d.%d (%s)\n"
                         "Coded by Trinh D.D. Nguyen\n\n"
-                        "Usage: glinfo [-?|c|e|i]\n"
-                        "Where as: -?  give this help message\n"
+                        "Usage: glinfo [-h|c|e|i]\n"
+                        "Where as: -h  give this help message\n"
                         "          -c  use core profile to query, by default legacy profile is used\n"
                         "          -e  list all extensions only\n"
                         "          -i  display OpenGL information, use combine with -e\n"
@@ -74,7 +74,7 @@ GLboolean parseArgs(int argc, char ** argv)
         valid = GL_FALSE;
         for(idx = 0; idx < argc; idx++)
         {
-            if (strcmp(argv[idx], "-?") == 0)
+            if (strcmp(argv[idx], "-h") == 0)
             {
                 printf(HELP_MSG, GLINFO_MAJOR_VERSION, GLINFO_MINOR_VERSION, OGLI_PLATFORM);
                 return GL_FALSE;
