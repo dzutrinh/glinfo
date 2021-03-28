@@ -18,7 +18,7 @@ is under BETA testing phase.
 
 ## Usage
 
-`glinfo [-hiecv]`
+`$glinfo [-hiecv]`
 
 ​	`-h	show help message`
 
@@ -29,4 +29,8 @@ is under BETA testing phase.
 ​	`-e	display OpenGL extensions only`
 
 ​	`-i	display basic OpenGL, use combine with -e to display both`
+
+To force software OpenGL using Mesa on Linux, use the following command
+
+`$LIBGL_ALWAYS_SOFTWARE=1 bin/glinfo`
 
