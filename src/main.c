@@ -42,7 +42,7 @@
 
 const char * HELP_MSG = "OpenGL information query utility - v%d.%d (%s)\n"
                         "Coded by Trinh D.D. Nguyen\n\n"
-                        "Usage: glinfo [-h|c|e|i]\n"
+                        "Usage: glinfo [-hiecv]\n"
                         "Where as: -h  give this help message\n"
                         "          -c  use core profile to query, by default legacy profile is used\n"
                         "          -e  list all extensions only\n"
