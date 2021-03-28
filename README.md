@@ -3,7 +3,7 @@ Tiny OpenGL Information utility. It displays OpenGL version, vendor, renderer an
 Currently support Windows and OSX, querying using legacy and core OpenGL profile. Linux support
 is under BETA testing phase.
 
-![linf](https://github.com/dzutrinh/glinfo/blob/master/screens/glinfo.png)
+![linf](https://github.com/dzutrinh/glinfo/blob/master/screens/glinfo_linux.png)
 
 ## Requirements
 * Windows: MinGW/Visual Studio 2015
