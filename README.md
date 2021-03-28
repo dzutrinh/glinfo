@@ -16,3 +16,17 @@ is under BETA testing phase.
 ## To do
 * Export results to a text file for later references
 
+## Usage
+
+`glinfo [-hiecv]`
+
+​	`-h	show help message`
+
+​	`-v 	display utility version`
+
+​	`-c	use core profile to query`
+
+​	`-e	display OpenGL extensions only`
+
+​	`-i	display basic OpenGL, use combine with -e to display both`
+
