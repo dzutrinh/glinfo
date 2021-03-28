@@ -54,10 +54,10 @@ else
 	MD		= mkdir -p $(BIN)
 	ifeq ($(UNAME_S),Linux)						# LINUX
 		CFLAGS = -O2 -o $(BINARY)
-		LFLAGS = -lGL -lGLU -lX11
+		LFLAGS = -lGL -lGLU -lX11 -lX11
 		ifeq ($(GLEW), YES)
 			CFLAGS += -DOGLI_USE_GLEW
-			LFLAGS += -lglew
+			LFLAGS += -lGLEW
 		endif	
 	else
 	ifeq ($(UNAME_S),Darwin)					# OSX

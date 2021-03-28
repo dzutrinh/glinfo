@@ -1,6 +1,6 @@
 /* OpenGL Information Query Utility
 **
-** Copyrights (c) 2018 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
+** Copyrights (c) 2021 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
 ** All Rights Reserved
 ** 
 ** Redistribution and use in source and binary forms, with or without 
@@ -26,6 +26,14 @@
 ** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 ** THE POSSIBILITY OF SUCH DAMAGE.
 */
+
+/* CHANGES
+**
+** v1.0: initial development
+** v1.1: Linux support added
+**
+*/
+
 #include <stdio.h>
 #include "ogli.h"
 

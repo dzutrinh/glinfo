@@ -1,6 +1,6 @@
 /* OpenGL Information Query Library
 **
-** Copyrights (c) 2018 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
+** Copyrights (c) 2021 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
 ** All Rights Reserved
 ** 
 ** Redistribution and use in source and binary forms, with or without 
@@ -62,13 +62,35 @@ void ogliLog(const char * msg)
 /*                                   PLATFORM INDEPENDENT API                                     */
 /*------------------------------------------------------------------------------------------------*/
 
+static GLboolean checkExtension(const char *extList, const char *extension)
+{
+    const char *start;
+    const char *where, *terminator;
+    
+    where = strchr(extension, ' ');
+    if (where || *extension == '\0')
+        return GL_FALSE;
+
+    for (start = extList;;) 
+    {
+        where = strstr(start, extension);
+        if (!where) break;
+        terminator = where + strlen(extension);
+        if (where == start || *(where - 1) == ' ')
+            if (*terminator == ' ' || *terminator == '\0')
+                return GL_TRUE;
+        start = terminator;
+    }
+    return GL_FALSE;
+}
+
 #ifndef OGLI_USE_GLEW
 #   ifdef  _WIN32
-#       define ogliGetProcAddress(name)  wglGetProcAddress((char *) name)
+#       define ogliGetProcAddress(name)  wglGetProcAddress((GLubyte *) name)
 #   elif __APPLE__
         /* since OSX has already initialized OpenGL extensions, there's nothing to do here */
 #   else /* LINUX */
-#       define ogliGetProcAddress(name)  glxGetProcAddress((char *) name)
+#       define ogliGetProcAddress(name)  glXGetProcAddressARB((GLubyte *) name)
 #   endif /* LINUX */
 #endif /* OGLI_USE_GLEW */
 
@@ -79,14 +101,14 @@ static GLboolean ogliInitCore()
         glGetStringi = (PFNGLGETSTRINGIPROC) ogliGetProcAddress((GLubyte *) "glGetStringi");
         if (!glGetStringi)
         {
-            ogliLog("Failed to obtain glGetStringi()");
+            ogliLog("ogliInitCore: Failed to obtain glGetStringi()");
             return GL_FALSE;
         }
         #ifdef  _WIN32
             wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC) ogliGetProcAddress((GLubyte *) "wglCreateContextAttribsARB");
             if (!wglCreateContextAttribsARB)
             {
-                ogliLog("Failed to obtain wglCreateContextAttribsARB()");
+                ogliLog("ogliInitCore: Failed to obtain wglCreateContextAttribsARB()");
                 return GL_FALSE;
             }
 #       endif /* _WIN32 */
@@ -95,7 +117,7 @@ static GLboolean ogliInitCore()
         GLenum err = glewInit();
         if (err != GLEW_OK)
         {
-            ogliLog("Failed to init GLEW library");
+            ogliLog("ogliInitCore: Failed to init GLEW library");
             return GL_FALSE;
         }
 #   endif /* OGLI_USE_GLEW */
@@ -113,7 +135,7 @@ OGLI_CONTEXT * ogliInit(OGLI_PROFILE profile)
     OGLI_CONTEXT * ctx = (OGLI_CONTEXT *) malloc(sizeof(OGLI_CONTEXT));
     if (!ctx)
     {
-        ogliLog("Not enough memory for context");
+        ogliLog("ogliInit: Not enough memory for context");
         return NULL;
     }
 
@@ -155,41 +177,21 @@ GLboolean ogliShutdown(OGLI_CONTEXT * ctx)
 
 GLboolean ogliSupported(OGLI_CONTEXT * ctx, const char *extension)
 {
-    const char *start;
-    const char *where, *terminator;
-
     if (!ctx)
     {
-        ogliLog("Invalid OGLI context");
+        ogliLog("ogliSupported: Invalid OGLI context");
         return GL_FALSE;
     }
     
     if (!ctx->active)
     {
-        ogliLog("OGLI is not ready");
+        ogliLog("ogliSupported: OGLI is not ready");
         return GL_FALSE;
     }
 
-    /* Extension names should not have spaces. */
-    where = strchr(extension, ' ');
-        if (where || *extension == '\0')
-            return GL_FALSE;
-
-    /*  It takes a bit of care to be fool-proof about parsing the
-        OpenGL extensions string. Don't be fooled by sub-strings, etc. */
-    for (start=ctx->iblock.glExtensions;;)
-    {
-        where = strstr(start, extension);
-        if (!where)
-            break;
-        terminator = where + strlen(extension);
-        if ( where == start || *(where - 1) == ' ' )
-            if ( *terminator == ' ' || *terminator == '\0' )
-                return GL_TRUE;
-        start = terminator;
-    }
-  
-    return GL_FALSE;
+    /* at this point of initialization, it is assumed that both 
+       legacy and core profiles are supported */
+    return checkExtension(ctx->iblock.glExtensions, extension);
 }
 
 GLboolean ogliQuery(OGLI_CONTEXT * ctx)
@@ -199,13 +201,13 @@ GLboolean ogliQuery(OGLI_CONTEXT * ctx)
 
     if (!ctx)
     {
-        ogliLog("Invalid OGLI context");
+        ogliLog("ogliQuery: Invalid OGLI context");
         return GL_FALSE;
     }
 
     if (!ctx->active)
     {
-        ogliLog("OGLI is not ready");
+        ogliLog("ogliQuery: OGLI is not ready");
         return GL_FALSE;
     }
     
@@ -243,14 +245,14 @@ GLboolean ogliQuery(OGLI_CONTEXT * ctx)
 #else
     if (ctx->profile == OGLI_LEGACY)
 #endif
-    {                                                           
+    {
         /* copy the extensions string */
         ext = (char *) glGetString(GL_EXTENSIONS);
         if (ext)
             strcpy((char *) ctx->iblock.glExtensions, ext);
         else
             strcpy((char *) ctx->iblock.glExtensions, "");
-        
+
         /* simplest way to count the number of extensions */
         for (tmp = ctx->iblock.glExtensions; *tmp; tmp++)
         {
@@ -269,7 +271,7 @@ GLboolean ogliQuery(OGLI_CONTEXT * ctx)
             strcat(ctx->iblock.glExtensions, " ");
         }
     }
-    
+
     /* OpenGL Utility Library */
     strcpy((char *) ctx->iblock.gluVersion,   (char *) gluGetString(GLU_VERSION));
     ext = (char *) gluGetString(GLU_EXTENSIONS);
@@ -299,7 +301,10 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
 #endif /* OGLI_USE_GLEW */
 
     if (!ctx)    /* validate input parameter */
+    {
+        ogliLog("ogliCreateContext: Invalid OGLI context");
         return GL_FALSE;
+    }
 
     /* register our window class */
     memset(&wc, 0, sizeof(WNDCLASS));
@@ -318,7 +323,7 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
     ctx->dc = GetDC(ctx->wnd);      /* obtain device context */
     if (!ctx->dc) 
     {
-        ogliLog("OGLI library is not initialized");
+        ogliLog("ogliCreateContext: Cannot initialize OGLI library");
         return GL_FALSE;
     }
 
@@ -330,13 +335,13 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
     pf = ChoosePixelFormat(ctx->dc, &pfd);          /* select a pixel format */
     if (!pf)
     {
-        ogliLog("Cannot select pixel format");
+        ogliLog("ogliCreateContext: Cannot select pixel format");
         return GL_FALSE;
     }
 
     if (!SetPixelFormat(ctx->dc, pf, &pfd))
     {
-        ogliLog("Pixel format is not accelerated");
+        ogliLog("ogliCreateContext: Pixel format is not accelerated");
         return GL_FALSE;
     }
     
@@ -344,14 +349,14 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
     ctx->rc = wglCreateContext(ctx->dc);
     if (!ctx->rc)
     {
-        ogliLog("Context creation error");
+        ogliLog("ogliCreateContext: Context creation error");
         return GL_FALSE;
     }
 
     /* make the rendering context current */
     if (!wglMakeCurrent(ctx->dc, ctx->rc))
     {
-        ogliLog("Error making context current");
+        ogliLog("ogliCreateContext: Error making context current");
         return GL_FALSE;
     }
 
@@ -359,7 +364,7 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
     {
         if (!ogliInitCore())
         {
-            ogliLog("Error initialize core profile, switch back to legacy");
+            ogliLog("ogliCreateContext: Error initialize core profile, switch back to legacy");
         }
 
 #ifndef OGLI_USE_GLEW
@@ -382,13 +387,13 @@ GLboolean ogliDestroyContext(OGLI_CONTEXT * ctx)
 {
     if (!ctx)   /* validate input parameter */
     {
-        ogliLog("Invalid OGLI context");
+        ogliLog("ogliDestroyContext: Invalid OGLI context");
         return GL_FALSE;
     }
 
     if (!ctx->active)
     {
-        ogliLog("OGLI is not ready");
+        ogliLog("ogliDestroyContext: OGLI is not ready");
         return GL_FALSE;
     }
 
@@ -425,8 +430,11 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
     CGLPixelFormatObj pf;
     GLint npix;
 
-    if (!ctx) 
+    if (!ctx)
+    { 
+        ogliLog("ogliCreateContext: Invalid OGLI context");
         return GL_FALSE;
+    }
     
     if (ctx->profile == OGLI_CORE)
     {
@@ -442,10 +450,10 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
     }
     else
         CGLChoosePixelFormat(attribLegacy, &pf, &npix);
-        
+
     CGLCreateContext(pf, NULL, &ctx->context);
     ctx->contextOrig = CGLGetCurrentContext();
-    CGLSetCurrentContext(ctx->context);        
+    CGLSetCurrentContext(ctx->context);
     CGLReleasePixelFormat(pf);
 
     /* get glGetStringi entry point if core profile is requested */
@@ -456,15 +464,18 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
     }
 
     ctx->active = GL_TRUE;
-        
+
     return GL_TRUE;
 }
 
 GLboolean ogliDestroyContext(OGLI_CONTEXT * ctx)
 {
-    if (!ctx) 
+    if (!ctx)
+    {
+        ogliLog("ogliDestroyContext: Invalid OGLI context"); 
         return GL_FALSE;
-    
+    }
+
     CGLSetCurrentContext(ctx->contextOrig);
     if (ctx->context) 
         CGLReleaseContext(ctx->context);
@@ -478,5 +489,186 @@ GLboolean ogliDestroyContext(OGLI_CONTEXT * ctx)
 /*                                LINUX PLATFORM SPECIFIC CODE                                    */
 /*------------------------------------------------------------------------------------------------*/
 #ifdef __linux__
+
+/* 
+** NOTES
+** -----
+** To enable OpenGL 3.2 core profile emulation with MESA on unsupported platforms, 
+** use the following command in your terminal:
+** 
+** $LIBGL_ALWAYS_SOFTWARE=1 bin/glinfo -c
+**
+*/
+
+#define GLX_CONTEXT_MAJOR_VERSION_ARB	0x2091
+#define	GLX_CONTEXT_MINOR_VERSION_ARB	0x2092
+
+typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int *);
+static GLboolean ctxErrorOccurred = GL_FALSE;
+
+static int ctxErrorHandler(Display *dpy, XErrorEvent * ev)
+{
+	ctxErrorOccurred = GL_TRUE;
+	return 0;
+}
+
+GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
+{
+    /* framebuffer desired config */
+    static int visual_attribs[] =
+    {
+        GLX_X_RENDERABLE    , GL_TRUE,
+        GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,
+        GLX_RENDER_TYPE     , GLX_RGBA_BIT,
+        GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,
+        GLX_RED_SIZE        , 8,
+        GLX_GREEN_SIZE      , 8,
+        GLX_BLUE_SIZE       , 8,
+        GLX_ALPHA_SIZE      , 8,
+        GLX_DEPTH_SIZE      , 24,
+        GLX_STENCIL_SIZE    , 8,
+        GLX_DOUBLEBUFFER    , GL_TRUE,
+        None
+    };
+    int glx_major, glx_minor;
+
+    if (!ctx)
+    { 
+        ogliLog("ogliCreateContext: Invalid OGLI context");
+        return GL_FALSE;
+    }
+
+    ctx->display = XOpenDisplay(NULL);
+    if (!ctx->display)
+    {
+        ogliLog("ogliCreateContext: Failed to open X display\n");
+        return GL_FALSE;
+    }
+ 
+    /* FBConfigs were added in GLX version 1.3. */
+    if (!glXQueryVersion(ctx->display, &glx_major, &glx_minor) || 
+       ((glx_major == 1) && (glx_minor < 3)) || (glx_major < 1))
+    {
+        ogliLog("ogliCreateContext: Unsupported GLX version");
+        return GL_FALSE;
+    }
+
+    int fbcount;
+    GLXFBConfig* fbc = glXChooseFBConfig(ctx->display, DefaultScreen(ctx->display), visual_attribs, &fbcount);
+    if (!fbc)
+    {
+        ogliLog("ogliCreateContext: Unable to obtain a framebuffer config");
+        return GL_FALSE;
+    }
+  
+    int best_fbc = -1, worst_fbc = -1, best_num_samp = -1, worst_num_samp = 999;
+    int i;
+    for (i = 0; i < fbcount; ++i)
+    {
+        XVisualInfo *vi = glXGetVisualFromFBConfig(ctx->display, fbc[i]);
+        if (vi)
+        {
+            int samp_buf, samples;
+            glXGetFBConfigAttrib(ctx->display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
+            glXGetFBConfigAttrib(ctx->display, fbc[i], GLX_SAMPLES       , &samples );
+      
+            if (best_fbc < 0 || samp_buf && samples > best_num_samp)
+                best_fbc = i, best_num_samp = samples;
+            if (worst_fbc < 0 || !samp_buf || samples < worst_num_samp)
+                worst_fbc = i, worst_num_samp = samples;
+        }
+        XFree(vi);
+    }
+    GLXFBConfig bestFbc = fbc[best_fbc];
+    XFree(fbc);
+
+    XVisualInfo *vi = glXGetVisualFromFBConfig(ctx->display, bestFbc);
+    XSetWindowAttributes swa;
+    swa.colormap = ctx->cmap = XCreateColormap(ctx->display, RootWindow(ctx->display, vi->screen), vi->visual, AllocNone);
+    swa.background_pixmap = None;
+    swa.border_pixel      = 0;
+    swa.event_mask        = StructureNotifyMask;
+
+    ctx->win = XCreateWindow( ctx->display, RootWindow( ctx->display, vi->screen ), 
+                              0, 0, 10, 10, 0, vi->depth, InputOutput, 
+                              vi->visual, CWBorderPixel|CWColormap|CWEventMask, &swa );
+    if (!ctx->win)
+    {
+        ogliLog("ogliCreateContext: Error creating window");
+        return GL_FALSE;
+    }
+    XFree(vi);
+    XMapWindow(ctx->display, ctx->win);
+
+    /* Get the default screen's GLX extension list */
+    const GLubyte *glxExts = glXQueryExtensionsString(ctx->display, DefaultScreen(ctx->display));
+
+    glXCreateContextAttribsARBProc glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
+    glXGetProcAddressARB((const GLubyte *) "glXCreateContextAttribsARB");
+    ctx->context = 0;
+    ctxErrorOccurred = GL_FALSE;
+    int (*oldHandler)(Display*, XErrorEvent*) = XSetErrorHandler(&ctxErrorHandler);
+
+    if (ctx->profile == OGLI_CORE)
+    {
+        if (!checkExtension(glxExts, "GLX_ARB_create_context") ||
+            !glXCreateContextAttribsARB)
+        {
+            ogliLog("ogliCreateContext: GLX_ARB_create_context is not supported");
+            return GL_FALSE;
+        }
+
+        int context_attribs[] =
+        {
+            GLX_CONTEXT_MAJOR_VERSION_ARB, 3,	/* request OpenGL 3.2 */
+            GLX_CONTEXT_MINOR_VERSION_ARB, 2,
+            None
+        };
+        ctx->context = glXCreateContextAttribsARB(ctx->display, bestFbc, 0, GL_TRUE, context_attribs);
+    }
+    else
+    {
+        ctx->context = glXCreateNewContext(ctx->display, bestFbc, GLX_RGBA_TYPE, 0, GL_TRUE);
+    }
+    XSync(ctx->display, GL_FALSE);
+    XSetErrorHandler(oldHandler);
+
+    if (ctxErrorOccurred || !ctx->context)
+    {
+        ogliLog("ogliCreateContext: Unable to create OpenGL context");
+        return GL_FALSE;
+    }
+
+    glXMakeCurrent(ctx->display, ctx->win, ctx->context);
+
+    ctx->active = GL_TRUE;
+    if (ctx->profile == OGLI_CORE)
+    {
+        if (!ogliInitCore())
+            return GL_FALSE;
+    }
+
+    return GL_TRUE;
+}
+
+GLboolean ogliDestroyContext(OGLI_CONTEXT * ctx)
+{
+    if (!ctx)
+    {
+        ogliLog("ogliDestroyContext: Invalid OGLI context");
+        return GL_FALSE;
+    }
+
+    glXMakeCurrent(ctx->display, 0, 0);
+    glXDestroyContext(ctx->display, ctx->context);
+
+    XDestroyWindow(ctx->display, ctx->win);
+    XFreeColormap(ctx->display, ctx->cmap);
+    XCloseDisplay(ctx->display);
+
+    ctx->active = GL_FALSE;
+
+    return GL_TRUE;
+}
 
 #endif

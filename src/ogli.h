@@ -1,6 +1,6 @@
 /* OpenGL Information Query Library
 **
-** Copyrights (c) 2018 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
+** Copyrights (c) 2021 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
 ** All Rights Reserved
 ** 
 ** Redistribution and use in source and binary forms, with or without 
@@ -35,14 +35,16 @@ extern "C" {
 #endif 
 
 /* to make use of the GLEW library, enable the line below */
-//#define OGLI_USE_GLEW 1
+//#define OGLI_USE_GLEW 1     /* mark for GLEW removal */
 
 /* for debugging purpose, enable the line below */
 //#define OGLI_DEBUG    1
 
+/* common headers */
 #include <stdlib.h>
 #include <string.h>
 
+/* platform specific headers */
 #ifdef _WIN32
 #	include <windows.h>
 #   ifndef  OGLI_USE_GLEW
@@ -61,8 +63,12 @@ extern "C" {
 #       include <unistd.h>
 #       include <X11/Xlib.h>
 #       include <X11/Xutil.h>
-#       include <GL/gl.h>
+#   ifndef  OGLI_USE_GLEW
+#       include <GL/glew.h>
+#   endif
 #       include <GL/glx.h>
+#       include <GL/gl.h>
+#       include <GL/glu.h>
 #   endif
 #endif
 
@@ -73,14 +79,13 @@ extern "C" {
 #   ifdef   OGLI_USE_GLEW
 #       pragma comment (lib, "glew32.lib")
 #   endif
-#	pragma warning (disable:4996)	/* enable preprocessor _CRT_SECURE_NO_WARNINGS */
+#	pragma warning (disable:4996)	    /* enable preprocessor _CRT_SECURE_NO_WARNINGS */
 #endif
 
-#define OGLI_MAX_INFO_LENGTH (128)	/* maximum length of an information string */
+#define OGLI_MAX_INFO_LENGTH (128)	    /* maximum length of an information string */
 #define OGLI_MAX_EXT_LENGTH  (10240)	/* maximum length of an extension string */
-
 #define OGLI_MAJOR_VERSION  1           /* library version number */
-#define OGLI_MINOR_VERSION  0
+#define OGLI_MINOR_VERSION  1
 
 /* library platform */
 #ifdef  _WIN32
@@ -144,7 +149,10 @@ typedef struct gl_info_context
     CGLContextObj   context;    /* context to use */
     CGLContextObj   contextOrig;/* original context */
 #else
-/* POSIX */
+	GLXContext		context;	/* GLX context */
+    Display         *display;   /* X display */
+    Colormap        cmap;       /* color map */
+    Window          win;        /* X Window */
 #endif
 } OGLI_CONTEXT;
 
