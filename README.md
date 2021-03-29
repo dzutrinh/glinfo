@@ -23,9 +23,13 @@ The output binary would be placed under the newly created `./bin` folder. To run
 `$glinfo [-hiecv]`
 
 ​	`-h show help message`
+
 ​	`-v display utility version`
+
 ​	`-c use core profile to query`
+
 ​	`-e display OpenGL extensions only`
+
 ​	`-i display basic OpenGL, use combine with -e to display both`
 
 To force software OpenGL using Mesa on Linux, use the following command
