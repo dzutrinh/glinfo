@@ -38,3 +38,4 @@ To force software OpenGL using Mesa on Linux, use the following command
 
 ## To do
 * Export results to a text file for later references
+* Considering to remove optional GLEW usage from the library
