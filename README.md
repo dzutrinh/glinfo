@@ -8,7 +8,7 @@ is under testing phase.
 ## Requirements
 * Windows: MinGW/Visual Studio 2015
 * OSX: GCC/Clang 
-* Linux: GCC
+* Linux: GCC/Clang
 
 ## Compile
 

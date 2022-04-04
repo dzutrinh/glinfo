@@ -66,7 +66,7 @@ static GLboolean checkExtension(const char *extList, const char *extension)
 {
     const char *start;
     const char *where, *terminator;
-    
+
     where = strchr(extension, ' ');
     if (where || *extension == '\0')
         return GL_FALSE;
@@ -182,7 +182,7 @@ GLboolean ogliSupported(OGLI_CONTEXT * ctx, const char *extension)
         ogliLog("ogliSupported: Invalid OGLI context");
         return GL_FALSE;
     }
-    
+
     if (!ctx->active)
     {
         ogliLog("ogliSupported: OGLI is not ready");
@@ -210,7 +210,7 @@ GLboolean ogliQuery(OGLI_CONTEXT * ctx)
         ogliLog("ogliQuery: OGLI is not ready");
         return GL_FALSE;
     }
-    
+
     /* reads the basic OpenGL information and store them into our information block */
     strcpy((char *) ctx->iblock.glRenderer,  (char *) glGetString(GL_RENDERER));
     strcpy((char *) ctx->iblock.glVendor,    (char *) glGetString(GL_VENDOR));
@@ -601,7 +601,7 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
     XMapWindow(ctx->display, ctx->win);
 
     /* Get the default screen's GLX extension list */
-    const GLubyte *glxExts = glXQueryExtensionsString(ctx->display, DefaultScreen(ctx->display));
+    const GLubyte *glxExts = (const GLubyte *) glXQueryExtensionsString(ctx->display, DefaultScreen(ctx->display));
 
     glXCreateContextAttribsARBProc glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
     glXGetProcAddressARB((const GLubyte *) "glXCreateContextAttribsARB");
@@ -611,7 +611,7 @@ GLboolean ogliCreateContext(OGLI_CONTEXT * ctx)
 
     if (ctx->profile == OGLI_CORE)
     {
-        if (!checkExtension(glxExts, "GLX_ARB_create_context") ||
+        if (!checkExtension((char *) glxExts, "GLX_ARB_create_context") ||
             !glXCreateContextAttribsARB)
         {
             ogliLog("ogliCreateContext: GLX_ARB_create_context is not supported");
