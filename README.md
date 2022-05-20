@@ -3,6 +3,8 @@ Tiny OpenGL Information utility. It displays OpenGL version, vendor, renderer an
 Currently support Windows and macOS, querying using legacy and core OpenGL profile. Linux support
 is under testing phase.
 
+When listing extensions, each is now displayed on a single line instead of a long long string.
+
 ![linf](https://github.com/dzutrinh/glinfo/blob/master/screens/glinfo_linux.png)
 
 ## Requirements
