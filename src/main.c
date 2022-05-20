@@ -31,6 +31,7 @@
 **
 ** v1.0: initial development
 ** v1.1: Linux support added
+** v1.2: improving extensions listing 
 **
 */
 
@@ -38,16 +39,16 @@
 #include "ogli.h"
 
 #define GLINFO_MAJOR_VERSION    1
-#define GLINFO_MINOR_VERSION    1
+#define GLINFO_MINOR_VERSION    2
 
 const char * HELP_MSG = "OpenGL information query utility - v%d.%d (%s)\n"
                         "Coded by Trinh D.D. Nguyen\n\n"
                         "Usage: glinfo [-hiecv]\n"
-                        "Where as: -h  give this help message\n"
-                        "          -c  use core profile to query, by default legacy profile is used\n"
-                        "          -e  list all extensions only\n"
-                        "          -i  display OpenGL information, use combine with -e\n"
-                        "          -v  display program's version number\n";
+                        "Where as: -h, --help       give this help message\n"
+                        "          -c, --core       use core profile to query, by default legacy profile is used\n"
+                        "          -e, --extension  list all extensions only\n"
+                        "          -i, --info       display OpenGL information, use combine with -e\n"
+                        "          -v, --version    display program's version number\n";
 
 GLboolean       extShow = GL_FALSE;
 GLboolean       infShow = GL_TRUE;
@@ -82,38 +83,38 @@ GLboolean parseArgs(int argc, char ** argv)
         valid = GL_FALSE;
         for(idx = 0; idx < argc; idx++)
         {
-            if (strcmp(argv[idx], "-h") == 0)
+            if (strcmp(argv[idx], "-h") == 0 || strcmp(argv[idx], "--help") == 0)
             {
                 printf(HELP_MSG, GLINFO_MAJOR_VERSION, GLINFO_MINOR_VERSION, OGLI_PLATFORM);
                 return GL_FALSE;
             }
 
-            if (strcmp(argv[idx], "-v") == 0)
+            if (strcmp(argv[idx], "-v") == 0 || strcmp(argv[idx], "--version") == 0)
             {
                 showVersions();
                 return GL_FALSE;
             }
 
-            if (strcmp(argv[idx], "-c") == 0)
+            if (strcmp(argv[idx], "-c") == 0 || strcmp(argv[idx], "--core") == 0)
             {
                 profile = OGLI_CORE;
                 valid = GL_TRUE;
             }
-            
-            if (strcmp(argv[idx], "-e") == 0)
+
+            if (strcmp(argv[idx], "-e") == 0 || strcmp(argv[idx], "--extension") == 0)
             {
                 extShow = GL_TRUE;
                 infShow = GL_FALSE;
                 valid = GL_TRUE;
             }
 
-            if (strcmp(argv[idx], "-i") == 0)
+            if (strcmp(argv[idx], "-i") == 0 || strcmp(argv[idx], "--info") == 0)
             {
                 infShow = GL_TRUE;
                 valid = GL_TRUE;
             }
         }
-        if(!valid)   
+        if (!valid)
             die("Unknown command line option.");
     }
     return GL_TRUE;
@@ -121,6 +122,9 @@ GLboolean parseArgs(int argc, char ** argv)
 
 void showInfo(const OGLI_CONTEXT * ctx)
 {
+    GLubyte *token, *temp;
+    GLuint  extLen, count = 0;
+
     printf(">>> OpenGL\n");
     if (infShow)
     {
@@ -132,24 +136,45 @@ void showInfo(const OGLI_CONTEXT * ctx)
     }
 
     if (extShow)
-        printf("%s\n", ctx->iblock.glExtensions);
-    
-    printf("\n>>> OpenGLU\n");
-    if (infShow)
     {
-        printf(" . Version     : %s\n", ctx->iblock.gluVersion);
+        extLen = strlen(ctx->iblock.glExtensions);
+        temp = (GLubyte *) malloc(extLen); 
+        strcpy((char *) temp, ctx->iblock.glExtensions);
+        token = strtok(temp, " ");
+        while (token)
+        {
+            printf("%4d %s\n", ++count, token);
+            token = strtok(NULL, " ");
+        }
+        free(temp);
     }
 
+    printf("\n>>> OpenGLU\n");
+    if (infShow)
+        printf(" . Version     : %s\n", ctx->iblock.gluVersion);
+
     if (extShow)
-        printf("%s\n", ctx->iblock.gluExtensions);
+    {
+        count = 0;
+        extLen = strlen(ctx->iblock.gluExtensions);
+        temp = (GLubyte *) malloc(extLen); 
+        strcpy((char *) temp, ctx->iblock.gluExtensions);
+        token = strtok(temp, " ");
+        while (token)
+        {
+            printf("%4d %s\n", ++count, token);
+            token = strtok(NULL, " ");
+        }
+        free(temp);
+    }
 }
 
 int main(int argc, char **argv)
 {
     OGLI_CONTEXT        * ctx = NULL;
 
-    if (!parseArgs(argc, argv))     return -1;
-    ctx = ogliInit(profile);        
+    if (!parseArgs(argc, argv))     return 0;
+    ctx = ogliInit(profile);
     if (!ctx)                       die("Cannot init OGLI library.");
     if (!ogliCreateContext(ctx))    die("Error creating OpenGL context.");
     if (!ogliQuery(ctx))            die("Error fetching OpenGL information.");

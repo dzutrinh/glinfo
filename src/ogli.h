@@ -95,7 +95,7 @@ extern "C" {
 #       define  OGLI_PLATFORM   ("OGLI-W32")
 #   endif
 #elif   __APPLE__
-#   define  OGLI_PLATFORM    ("OGLI-OSX")
+#   define  OGLI_PLATFORM    ("OGLI-DARWIN")
 #else
 #   define  OGLI_PLATFORM    ("OGLI-LINUX")
 #endif
