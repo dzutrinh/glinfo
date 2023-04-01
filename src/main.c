@@ -140,11 +140,11 @@ void showInfo(const OGLI_CONTEXT * ctx)
         extLen = strlen(ctx->iblock.glExtensions);
         temp = (GLubyte *) malloc(extLen); 
         strcpy((char *) temp, ctx->iblock.glExtensions);
-        token = strtok(temp, " ");
+        token = (GLubyte *) strtok((char *) temp, " ");
         while (token)
         {
             printf("%4d %s\n", ++count, token);
-            token = strtok(NULL, " ");
+            token = (GLubyte *) strtok(NULL, " ");
         }
         free(temp);
     }
@@ -159,11 +159,11 @@ void showInfo(const OGLI_CONTEXT * ctx)
         extLen = strlen(ctx->iblock.gluExtensions);
         temp = (GLubyte *) malloc(extLen); 
         strcpy((char *) temp, ctx->iblock.gluExtensions);
-        token = strtok(temp, " ");
+        token = (GLubyte *) strtok((char *) temp, " ");
         while (token)
         {
             printf("%4d %s\n", ++count, token);
-            token = strtok(NULL, " ");
+            token = (GLubyte *) strtok(NULL, " ");
         }
         free(temp);
     }

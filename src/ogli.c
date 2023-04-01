@@ -86,11 +86,11 @@ static GLboolean checkExtension(const char *extList, const char *extension)
 
 #ifndef OGLI_USE_GLEW
 #   ifdef  _WIN32
-#       define ogliGetProcAddress(name)  wglGetProcAddress((GLubyte *) name)
+#       define ogliGetProcAddress(name)  wglGetProcAddress((const char *) name)
 #   elif __APPLE__
         /* since OSX has already initialized OpenGL extensions, there's nothing to do here */
 #   else /* LINUX */
-#       define ogliGetProcAddress(name)  glXGetProcAddressARB((GLubyte *) name)
+#       define ogliGetProcAddress(name)  glXGetProcAddressARB((const char *) name)
 #   endif /* LINUX */
 #endif /* OGLI_USE_GLEW */
 
@@ -98,7 +98,7 @@ static GLboolean ogliInitCore()
 {
 #ifndef __APPLE__
 #   ifndef OGLI_USE_GLEW
-        glGetStringi = (PFNGLGETSTRINGIPROC) ogliGetProcAddress((GLubyte *) "glGetStringi");
+        glGetStringi = (PFNGLGETSTRINGIPROC) ogliGetProcAddress((const char *) "glGetStringi");
         if (!glGetStringi)
         {
             ogliLog("ogliInitCore: Failed to obtain glGetStringi()");
