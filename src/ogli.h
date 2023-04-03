@@ -1,6 +1,6 @@
 /* OpenGL Information Query Library
 **
-** Copyrights (c) 2021 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
+** Copyrights (c) 2021-2023 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
 ** All Rights Reserved
 ** 
 ** Redistribution and use in source and binary forms, with or without 
@@ -35,10 +35,10 @@ extern "C" {
 #endif 
 
 /* to make use of the GLEW library, enable the line below */
-//#define OGLI_USE_GLEW 1     /* mark for GLEW removal */
+/* #define OGLI_USE_GLEW 1 */   /* mark for GLEW removal */
 
 /* for debugging purpose, enable the line below */
-//#define OGLI_DEBUG    1
+/* #define OGLI_DEBUG    1 */
 
 /* common headers */
 #include <stdlib.h>

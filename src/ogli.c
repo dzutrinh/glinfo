@@ -1,6 +1,6 @@
 /* OpenGL Information Query Library
 **
-** Copyrights (c) 2021 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
+** Copyrights (c) 2021-2023 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
 ** All Rights Reserved
 ** 
 ** Redistribution and use in source and binary forms, with or without 
@@ -212,9 +212,9 @@ GLboolean ogliQuery(OGLI_CONTEXT * ctx)
     }
 
     /* reads the basic OpenGL information and store them into our information block */
-    strcpy((char *) ctx->iblock.glRenderer,  (char *) glGetString(GL_RENDERER));
-    strcpy((char *) ctx->iblock.glVendor,    (char *) glGetString(GL_VENDOR));
-    strcpy((char *) ctx->iblock.glVersion,   (char *) glGetString(GL_VERSION));
+    strncpy((char *) ctx->iblock.glRenderer,  (char *) glGetString(GL_RENDERER), OGLI_MAX_INFO_LENGTH-1);
+    strncpy((char *) ctx->iblock.glVendor,    (char *) glGetString(GL_VENDOR), OGLI_MAX_INFO_LENGTH-1);
+    strncpy((char *) ctx->iblock.glVersion,   (char *) glGetString(GL_VERSION), OGLI_MAX_INFO_LENGTH-1);
 
     /* extracts the OpenGL version number */
     sscanf(ctx->iblock.glVersion, "%d.%d.%d", &ctx->iblock.versionGL.major, 

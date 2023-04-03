@@ -1,6 +1,6 @@
 /* OpenGL Information Query Utility
 **
-** Copyrights (c) 2021 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
+** Copyrights (c) 2021-2023 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
 ** All Rights Reserved
 ** 
 ** Redistribution and use in source and binary forms, with or without 
@@ -32,6 +32,7 @@
 ** v1.0: initial development
 ** v1.1: Linux support added
 ** v1.2: improving extensions listing 
+** v1.3: fix buffer overflow bugs when query OpenGL information
 **
 */
 
@@ -39,7 +40,7 @@
 #include "ogli.h"
 
 #define GLINFO_MAJOR_VERSION    1
-#define GLINFO_MINOR_VERSION    2
+#define GLINFO_MINOR_VERSION    3
 
 const char * HELP_MSG = "OpenGL information query utility - v%d.%d (%s)\n"
                         "Coded by Trinh D.D. Nguyen\n\n"
@@ -66,7 +67,7 @@ void showVersions()
     printf("OpenGL Information Query v%d.%d\n"
            "Coded by Trinh D.D. Nguyen\n", GLINFO_MAJOR_VERSION,
                                            GLINFO_MINOR_VERSION);
-    printf("Information query library v%d.%d (%s)\n", OGLI_MAJOR_VERSION,
+    printf("Information query engine v%d.%d (%s)\n", OGLI_MAJOR_VERSION,
                                                       OGLI_MINOR_VERSION, 
                                                       OGLI_PLATFORM);
 #ifdef  OGLI_USE_GLEW
