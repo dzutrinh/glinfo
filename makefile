@@ -1,6 +1,6 @@
 ## OpenGL Information Query Utility
 ##
-## Copyrights (c) 2018 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
+## Copyrights (c) 2021-2023 by Trinh D.D. Nguyen <dzutrinh[]yahoo.com>
 ## All Rights Reserved
 ## 
 ## Redistribution and use in source and binary forms, with or without 
