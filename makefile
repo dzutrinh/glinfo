@@ -32,7 +32,7 @@ BIN		= bin
 SRC		= src
 PROJECT	= glinfo
 SOURCE	= $(SRC)/main.c $(SRC)/ogli.c
-BINARY	= $(BIN)\$(PROJECT)
+BINARY	= $(BIN)/$(PROJECT)
 
 # YES = enable GLEW | NO = disable GLEW
 GLEW	= NO
