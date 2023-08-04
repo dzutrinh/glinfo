@@ -63,12 +63,12 @@ extern "C" {
 #       include <unistd.h>
 #       include <X11/Xlib.h>
 #       include <X11/Xutil.h>
-#   ifndef  OGLI_USE_GLEW
+#   ifdef  OGLI_USE_GLEW
 #       include <GL/glew.h>
 #   endif
 #       include <GL/glx.h>
 #       include <GL/gl.h>
-#       include <GL/glu.h>
+#       include <GL/glu.h>  /* to install, type 'sudo apt install libgl1-mesa-dev libglu1-mesa-dev' in Terminal */
 #   endif
 #endif
 

@@ -32,14 +32,15 @@ BIN		= bin
 SRC		= src
 PROJECT	= glinfo
 SOURCE	= $(SRC)/main.c $(SRC)/ogli.c
+BINARY	= $(BIN)\$(PROJECT)
 
 # YES = enable GLEW | NO = disable GLEW
 GLEW	= NO
 
 # Platform detection
 ifeq ($(OS),Windows_NT)							# WINDOWS
-	BINARY	= $(BIN)\$(PROJECT).exe
-	CFLAGS	= -Wall -O2 -o $(BINARY)
+	TARGET	= $(BINARY)-win32
+	CFLAGS	= -Wall -O2 -o $(TARGET)
 	LFLAGS	= -s -lgdi32 -lopengl32 -lglu32
 	RM		= del /f
 	MD		= if not exist $(BIN)\NUL mkdir $(BIN)
@@ -49,11 +50,11 @@ ifeq ($(OS),Windows_NT)							# WINDOWS
 	endif
 else
 	UNAME_S := $(shell uname -s)
-	BINARY	= $(BIN)/$(PROJECT)
 	RM		= rm -f
 	MD		= mkdir -p $(BIN)
 	ifeq ($(UNAME_S),Linux)						# LINUX
-		CFLAGS = -O2 -o $(BINARY)
+		TARGET	= $(BINARY)-linux
+		CFLAGS = -O2 -o $(TARGET)
 		LFLAGS = -lGL -lGLU -lX11
 		ifeq ($(GLEW), YES)
 			CFLAGS += -DOGLI_USE_GLEW
@@ -61,7 +62,8 @@ else
 		endif	
 	else
 	ifeq ($(UNAME_S),Darwin)					# OSX
-		CFLAGS = -Wno-deprecated -Wno-enum-conversion -Wno-\#warnings -o $(BINARY)
+		TARGET	= $(BINARY)-darwin
+		CFLAGS = -Wno-deprecated -Wno-enum-conversion -Wno-\#warnings -o $(TARGET)
 		LFLAGS = -framework OpenGL
 	endif
 	endif
@@ -73,4 +75,5 @@ all: $(SOURCE)
 	$(CC) $(CFLAGS) $(SOURCE) $(LFLAGS)
 
 clean:
-	$(RM) $(BINARY)
+	$(RM) $(TARGET)
+	
