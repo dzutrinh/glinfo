@@ -42,8 +42,8 @@ ifeq ($(OS),Windows_NT)							# WINDOWS
 	TARGET	= $(BINARY)-win32
 	CFLAGS	= -Wall -O2 -o $(TARGET)
 	LFLAGS	= -s -lgdi32 -lopengl32 -lglu32
-	RM		= del /f
-	MD		= if not exist $(BIN)\NUL mkdir $(BIN)
+	RM		= $(del /f)
+	MD		= $(IF NOT  exist $(BIN) mkdir $(BIN))
 	ifeq ($(GLEW), YES)
 		CFLAGS += -DOGLI_USE_GLEW
 		LFLAGS += -lglew32
